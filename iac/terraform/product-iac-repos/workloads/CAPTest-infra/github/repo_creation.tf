@@ -14,7 +14,7 @@
 # GitHub Repo Creation
 ####################################################################################################
 
-module "github_repoooooooo" {
+module "github_repo" {
   source = "../../../../../../tf-modules/github-repo"
 
   allow_auto_merge         = false
