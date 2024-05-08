@@ -87,7 +87,7 @@ jobs:
         run: |
           echo $MATRIX_GITHUB
           echo '---------------------------------------------'
-          echo $GITHUB_ENV
+          cat $GITHUB_ENV
 
   # deploy_github_repos:
   #   name: Deploy - GitHub Repos
