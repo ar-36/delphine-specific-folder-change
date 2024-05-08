@@ -76,18 +76,22 @@ jobs:
           SUBDIR_LAYER_1_PROD_JSON=$(find ./iac/terraform/product-iac-repos/workloads/ -not -path '*/github/*' -not -path '*/dev/*' -not -path '*/test/*' -name '*layer_1' -maxdepth 3 -mindepth 3 -type d | sort | jq -cMRs 'split("\n") | .[0:-1]')
           echo "MATRIX_LAYER_1_PROD=${SUBDIR_LAYER_1_PROD_JSON}"
           echo "MATRIX_LAYER_1_PROD=${SUBDIR_LAYER_1_PROD_JSON}" >> $GITHUB_ENV
-  
-  check_changes:
-    name: check changes
-    needs:
-      - configure
-    runs-on: ubuntu-latest
-    steps:
-      - name: check
-        run: |
+
+          echo '==========================================='
           echo $MATRIX_GITHUB
-          echo '---------------------------------------------'
           cat $GITHUB_ENV
+  
+  # check_changes:
+  #   name: check changes
+  #   needs:
+  #     - configure
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: check
+  #       run: |
+  #         echo $MATRIX_GITHUB
+  #         echo '---------------------------------------------'
+  #         cat $GITHUB_ENV
 
   # deploy_github_repos:
   #   name: Deploy - GitHub Repos
