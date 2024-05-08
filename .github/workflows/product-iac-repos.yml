@@ -25,6 +25,13 @@ jobs:
       base_sha: ${{ env.GIT_BASE_SHA }}
     steps:
 
+      # This logic allows us to handle two scenarios with tj-actions:
+      #   1. Running the workflow against main branch, after a merge commit.
+      #      In this scenario, we want to diff our new merge commit against the previous one.
+      #   2. Running the workflow against a non-main branch, during a manual trigger and testing
+      #      of a branch.
+      #      In this scenario, we want to diff our most-recent branch commit against the last merge
+      #      commit in main branch.
       - name: Fetch repository history
         uses: actions/checkout@v3
         with:
