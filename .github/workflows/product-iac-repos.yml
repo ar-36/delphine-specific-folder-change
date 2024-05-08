@@ -3,7 +3,7 @@ name: product-iac-repos
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - .github/workflows/product-iac-repos.yml
       - iac/terraform/product-iac-repos/workloads/**
