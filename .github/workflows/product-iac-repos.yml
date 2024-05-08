@@ -22,64 +22,92 @@ jobs:
     name: Configure
     runs-on: ubuntu-latest
     outputs:
-      matrix_layer_0_dev: ${{ env.MATRIX_LAYER_0_DEV }}
-      matrix_layer_1_dev: ${{ env.MATRIX_LAYER_1_DEV }}
-      matrix_layer_0_test: ${{ env.MATRIX_LAYER_0_TEST }}
-      matrix_layer_1_test: ${{ env.MATRIX_LAYER_1_TEST }}
-      matrix_layer_0_prod: ${{ env.MATRIX_LAYER_0_PROD }}
-      matrix_layer_1_prod: ${{ env.MATRIX_LAYER_1_PROD }}
-      matrix_github: ${{ env.MATRIX_GITHUB}}
+      base_sha: ${{ env.GIT_BASE_SHA }}
     steps:
+
+      # This logic allows us to handle two scenarios with tj-actions:
+      #   1. Running the workflow against main branch, after a merge commit.
+      #      In this scenario, we want to diff our new merge commit against the previous one.
+      #   2. Running the workflow against a non-main branch, during a manual trigger and testing
+      #      of a branch.
+      #      In this scenario, we want to diff our most-recent branch commit against the last merge
+      #      commit in main branch.
       - name: Fetch repository history
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Check all github subdirectories
-        id: github_subdirectories
+      - name: Determine commit SHA to compare against
         run: |
-          SUBDIR_GITHUB_JSON=$(find ./iac/terraform/product-iac-repos/workloads/ -not -path '*/dev/*' -not -path '*/test/*' -not -path '*/prod/*' -name '*github' -maxdepth 2 -mindepth 2 -type d | sort | jq -cMRs 'split("\n") | .[0:-1]')
-          echo "MATRIX_GITHUB=${SUBDIR_GITHUB_JSON}"
-          echo "MATRIX_GITHUB=${SUBDIR_GITHUB_JSON}" >> $GITHUB_ENV
-      - name: Check all layer_0_dev subdirectories
-        id: layer_0_dev_subdirectories
-        run: |
-          SUBDIR_LAYER_0_DEV_JSON=$(find ./iac/terraform/product-iac-repos/workloads/ -not -path '*/github/*' -not -path '*/test/*' -not -path '*/prod/*' -name '*layer_0' -maxdepth 3 -mindepth 3 -type d | sort | jq -cMRs 'split("\n") | .[0:-1]')
-          echo "MATRIX_LAYER_0_DEV=${SUBDIR_LAYER_0_DEV_JSON}"
-          echo "MATRIX_LAYER_0_DEV=${SUBDIR_LAYER_0_DEV_JSON}" >> $GITHUB_ENV
-      - name: Check all layer_1_dev subdirectories
-        id: layer_1_dev_subdirectories
-        run: |
-          SUBDIR_LAYER_1_DEV_JSON=$(find ./iac/terraform/product-iac-repos/workloads/ -not -path '*/github/*' -not -path '*/test/*' -not -path '*/prod/*' -name '*layer_1' -maxdepth 3 -mindepth 3 -type d | sort | jq -cMRs 'split("\n") | .[0:-1]')
-          echo "MATRIX_LAYER_1_DEV=${SUBDIR_LAYER_1_DEV_JSON}"
-          echo "MATRIX_LAYER_1_DEV=${SUBDIR_LAYER_1_DEV_JSON}" >> $GITHUB_ENV
-      - name: Check all layer_0_test subdirectories
-        id: layer_0_test_subdirectories
-        run: |
-          SUBDIR_LAYER_0_TEST_JSON=$(find ./iac/terraform/product-iac-repos/workloads/ -not -path '*/github/*' -not -path '*/dev/*' -not -path '*/prod/*' -name '*layer_0' -maxdepth 3 -mindepth 3 -type d | sort | jq -cMRs 'split("\n") | .[0:-1]')
-          echo "MATRIX_LAYER_0_TEST=${SUBDIR_LAYER_0_TEST_JSON}"
-          echo "MATRIX_LAYER_0_TEST=${SUBDIR_LAYER_0_TEST_JSON}" >> $GITHUB_ENV
-      - name: Check all layer_1_test subdirectories
-        id: layer_1_test_subdirectories
-        run: |
-          SUBDIR_LAYER_1_TEST_JSON=$(find ./iac/terraform/product-iac-repos/workloads/ -not -path '*/github/*' -not -path '*/dev/*' -not -path '*/prod/*' -name '*layer_1' -maxdepth 3 -mindepth 3 -type d | sort | jq -cMRs 'split("\n") | .[0:-1]')
-          echo "MATRIX_LAYER_1_TEST=${SUBDIR_LAYER_1_TEST_JSON}"
-          echo "MATRIX_LAYER_1_TEST=${SUBDIR_LAYER_1_TEST_JSON}" >> $GITHUB_ENV
-      - name: Check all layer_0_prod subdirectories
-        id: layer_0_prod_subdirectories
-        run: |
-          SUBDIR_LAYER_0_PROD_JSON=$(find ./iac/terraform/product-iac-repos/workloads/ -not -path '*/github/*' -not -path '*/dev/*' -not -path '*/test/*' -name '*layer_0' -maxdepth 3 -mindepth 3 -type d | sort | jq -cMRs 'split("\n") | .[0:-1]')
-          echo "MATRIX_LAYER_0_PROD=${SUBDIR_LAYER_0_PROD_JSON}"
-          echo "MATRIX_LAYER_0_PROD=${SUBDIR_LAYER_0_PROD_JSON}" >> $GITHUB_ENV
-      - name: Check all layer_1_prod subdirectories
-        id: layer_1_prod_subdirectories
-        run: |
-          SUBDIR_LAYER_1_PROD_JSON=$(find ./iac/terraform/product-iac-repos/workloads/ -not -path '*/github/*' -not -path '*/dev/*' -not -path '*/test/*' -name '*layer_1' -maxdepth 3 -mindepth 3 -type d | sort | jq -cMRs 'split("\n") | .[0:-1]')
-          echo "MATRIX_LAYER_1_PROD=${SUBDIR_LAYER_1_PROD_JSON}"
-          echo "MATRIX_LAYER_1_PROD=${SUBDIR_LAYER_1_PROD_JSON}" >> $GITHUB_ENV
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            GIT_BASE_SHA=$(git log --format=format:%H --merges --skip 1 -1)
+          else
+            GIT_BASE_SHA=$(git log --format=format:%H --merges -1)
+          fi
 
-          echo '==========================================='
-          echo $MATRIX_GITHUB
-          cat $GITHUB_ENV
+          echo "GIT_BASE_SHA=${GIT_BASE_SHA}"
+          echo "GIT_BASE_SHA=${GIT_BASE_SHA}" >> $GITHUB_ENV
+  # configure:
+  #   name: Configure
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     matrix_layer_0_dev: ${{ env.MATRIX_LAYER_0_DEV }}
+  #     matrix_layer_1_dev: ${{ env.MATRIX_LAYER_1_DEV }}
+  #     matrix_layer_0_test: ${{ env.MATRIX_LAYER_0_TEST }}
+  #     matrix_layer_1_test: ${{ env.MATRIX_LAYER_1_TEST }}
+  #     matrix_layer_0_prod: ${{ env.MATRIX_LAYER_0_PROD }}
+  #     matrix_layer_1_prod: ${{ env.MATRIX_LAYER_1_PROD }}
+  #     matrix_github: ${{ env.MATRIX_GITHUB}}
+  #   steps:
+  #     - name: Fetch repository history
+  #       uses: actions/checkout@v3
+  #       with:
+  #         fetch-depth: 0
+  #     - name: Check all github subdirectories
+  #       id: github_subdirectories
+  #       run: |
+  #         SUBDIR_GITHUB_JSON=$(find ./iac/terraform/product-iac-repos/workloads/ -not -path '*/dev/*' -not -path '*/test/*' -not -path '*/prod/*' -name '*github' -maxdepth 2 -mindepth 2 -type d | sort | jq -cMRs 'split("\n") | .[0:-1]')
+  #         echo "MATRIX_GITHUB=${SUBDIR_GITHUB_JSON}"
+  #         echo "MATRIX_GITHUB=${SUBDIR_GITHUB_JSON}" >> $GITHUB_ENV
+  #     - name: Check all layer_0_dev subdirectories
+  #       id: layer_0_dev_subdirectories
+  #       run: |
+  #         SUBDIR_LAYER_0_DEV_JSON=$(find ./iac/terraform/product-iac-repos/workloads/ -not -path '*/github/*' -not -path '*/test/*' -not -path '*/prod/*' -name '*layer_0' -maxdepth 3 -mindepth 3 -type d | sort | jq -cMRs 'split("\n") | .[0:-1]')
+  #         echo "MATRIX_LAYER_0_DEV=${SUBDIR_LAYER_0_DEV_JSON}"
+  #         echo "MATRIX_LAYER_0_DEV=${SUBDIR_LAYER_0_DEV_JSON}" >> $GITHUB_ENV
+  #     - name: Check all layer_1_dev subdirectories
+  #       id: layer_1_dev_subdirectories
+  #       run: |
+  #         SUBDIR_LAYER_1_DEV_JSON=$(find ./iac/terraform/product-iac-repos/workloads/ -not -path '*/github/*' -not -path '*/test/*' -not -path '*/prod/*' -name '*layer_1' -maxdepth 3 -mindepth 3 -type d | sort | jq -cMRs 'split("\n") | .[0:-1]')
+  #         echo "MATRIX_LAYER_1_DEV=${SUBDIR_LAYER_1_DEV_JSON}"
+  #         echo "MATRIX_LAYER_1_DEV=${SUBDIR_LAYER_1_DEV_JSON}" >> $GITHUB_ENV
+  #     - name: Check all layer_0_test subdirectories
+  #       id: layer_0_test_subdirectories
+  #       run: |
+  #         SUBDIR_LAYER_0_TEST_JSON=$(find ./iac/terraform/product-iac-repos/workloads/ -not -path '*/github/*' -not -path '*/dev/*' -not -path '*/prod/*' -name '*layer_0' -maxdepth 3 -mindepth 3 -type d | sort | jq -cMRs 'split("\n") | .[0:-1]')
+  #         echo "MATRIX_LAYER_0_TEST=${SUBDIR_LAYER_0_TEST_JSON}"
+  #         echo "MATRIX_LAYER_0_TEST=${SUBDIR_LAYER_0_TEST_JSON}" >> $GITHUB_ENV
+  #     - name: Check all layer_1_test subdirectories
+  #       id: layer_1_test_subdirectories
+  #       run: |
+  #         SUBDIR_LAYER_1_TEST_JSON=$(find ./iac/terraform/product-iac-repos/workloads/ -not -path '*/github/*' -not -path '*/dev/*' -not -path '*/prod/*' -name '*layer_1' -maxdepth 3 -mindepth 3 -type d | sort | jq -cMRs 'split("\n") | .[0:-1]')
+  #         echo "MATRIX_LAYER_1_TEST=${SUBDIR_LAYER_1_TEST_JSON}"
+  #         echo "MATRIX_LAYER_1_TEST=${SUBDIR_LAYER_1_TEST_JSON}" >> $GITHUB_ENV
+  #     - name: Check all layer_0_prod subdirectories
+  #       id: layer_0_prod_subdirectories
+  #       run: |
+  #         SUBDIR_LAYER_0_PROD_JSON=$(find ./iac/terraform/product-iac-repos/workloads/ -not -path '*/github/*' -not -path '*/dev/*' -not -path '*/test/*' -name '*layer_0' -maxdepth 3 -mindepth 3 -type d | sort | jq -cMRs 'split("\n") | .[0:-1]')
+  #         echo "MATRIX_LAYER_0_PROD=${SUBDIR_LAYER_0_PROD_JSON}"
+  #         echo "MATRIX_LAYER_0_PROD=${SUBDIR_LAYER_0_PROD_JSON}" >> $GITHUB_ENV
+  #     - name: Check all layer_1_prod subdirectories
+  #       id: layer_1_prod_subdirectories
+  #       run: |
+  #         SUBDIR_LAYER_1_PROD_JSON=$(find ./iac/terraform/product-iac-repos/workloads/ -not -path '*/github/*' -not -path '*/dev/*' -not -path '*/test/*' -name '*layer_1' -maxdepth 3 -mindepth 3 -type d | sort | jq -cMRs 'split("\n") | .[0:-1]')
+  #         echo "MATRIX_LAYER_1_PROD=${SUBDIR_LAYER_1_PROD_JSON}"
+  #         echo "MATRIX_LAYER_1_PROD=${SUBDIR_LAYER_1_PROD_JSON}" >> $GITHUB_ENV
+
+  #         echo '==========================================='
+  #         echo $MATRIX_GITHUB
+  #         cat $GITHUB_ENV
   
   # check_changes:
   #   name: check changes
