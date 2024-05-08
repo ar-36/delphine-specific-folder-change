@@ -14,7 +14,6 @@
 # GitHub Repo Creation
 ####################################################################################################
 
-# aasas
 module "github_repo" {
   source = "../../../../../../tf-modules/github-repo"
 
