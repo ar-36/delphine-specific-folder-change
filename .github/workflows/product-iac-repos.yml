@@ -39,6 +39,53 @@ jobs:
 
           echo "GIT_BASE_SHA=${GIT_BASE_SHA}"
           echo "GIT_BASE_SHA=${GIT_BASE_SHA}" >> $GITHUB_ENV
+  
+
+  layer_0_determine_changes:
+    name: Layer 0 Determine Changes
+    runs-on: ubuntu-latest
+    needs: configure
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: Determine changes since last master commit
+        id: determine_changes
+        run: |
+          CHANGES=$(git diff --name-only ${{ needs.configure.outputs.base_sha }} HEAD -- ':!**/layer_1/**' ':!**/github/**')
+          echo "Changes since last master commit:"
+          echo "$CHANGES"
+  
+  
+  # layer_0_determine_changes:
+  #   name: Layer 0 - Determine changes
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     - configure
+  #   outputs:
+  #     matrix: ${{ env.MATRIX }}
+  #   steps:
+  #     - name: Check-out source
+  #       uses: actions/checkout@v3
+  #     - name: Get changed directories
+  #       id: changed_dirs
+  #       uses: tj-actions/changed-files@v41
+  #       with:
+  #         base_sha: ${{ needs.configure.outputs.base_sha }}
+  #         dir_names_max_depth: 5
+  #         dir_names: true
+  #         files_ignore: |
+  #           **/layer_1/**
+  #           **/github/**
+  #         json: true
+  #         path: iac/terraform/product-iac-repos/workloads/
+  #         quotepath: false
+  #         sha: ${{ github.sha }}
+  #     - run: echo "MATRIX=${{ steps.changed_dirs.outputs.all_changed_files }}" >> $GITHUB_ENV
+  
   # configure:
   #   name: Configure
   #   runs-on: ubuntu-latest
