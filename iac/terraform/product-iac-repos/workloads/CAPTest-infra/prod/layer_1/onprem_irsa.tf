@@ -1,0 +1,18 @@
+# © 2024 Amazon Web Services, Inc. or its affiliates. All Rights Reserved.
+
+# This AWS Content is provided subject to the terms of the AWS Customer Agreement
+# available at http://aws.amazon.com/agreement or other written agreement between
+# Customer and either Amazon Web Services, Inc. or Amazon Web Services EMEA SARL or both.
+
+####################################################################################################
+# !!! WARNING !!!
+#
+# The contents of this file are automatically generated, and will be overwritten!
+####################################################################################################
+
+
+module "oidc-provider" {
+  source          = "github.com/CPC-SCP/terraform-aws-iam.git//modules/oidc-provider?ref=v3.1.0"
+  descriptor      = "oidc_info"
+  oidc_identifier = "on-prem-irsa"
+}
