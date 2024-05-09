@@ -141,4 +141,3 @@ resource "aws_iam_role" "gha" {
     Name = "iep-ACEPoc-infra-dev-gha-exec"
   }
 }
-
