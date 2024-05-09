@@ -70,7 +70,7 @@ jobs:
     steps:
       - name: Deploying Layer 0
         run: |
-         echo ${{ needs.layer_0_determine_changes.outputs.has_changes == 'true' }}
+         echo ${{ needs.layer_0_determine_changes.outputs.has_changes }}
           echo "Deploying Layer 0"
   
   
