@@ -5,7 +5,7 @@ on:
     branches:
       - master
     paths:
-      - .github/workflows/product-iac-repos.yml
+      
       - iac/terraform/product-iac-repos/workloads/**
   workflow_dispatch:
 
