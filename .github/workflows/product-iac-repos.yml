@@ -5,7 +5,6 @@ on:
     branches:
       - master
     paths:
-      - .github/workflows/product-iac-repos.yml
       - iac/terraform/product-iac-repos/workloads/**
   workflow_dispatch:
 
@@ -61,19 +60,17 @@ jobs:
           echo "Layer 0 File Changes:"
           echo "$CHANGES"
           has_changes=$(if [ -n "$CHANGES" ]; then echo "true"; else echo "false"; fi)
-          
-          echo "has_changes=${has_changes}"
+
           echo "has_changes=${has_changes}" >> $GITHUB_ENV
   
   layer_0_deploy:
     name: Layer 0 - Deploy
     runs-on: ubuntu-latest
     needs: layer_0_determine_changes
-    # if: ${{ needs.layer_0_determine_changes.outputs.has_changes == 'true' }}
+    if: ${{ needs.layer_0_determine_changes.outputs.has_changes == 'true' }}
     steps:
       - name: Deploying Layer 0
         run: |
-         echo ${{ needs.layer_0_determine_changes.outputs.has_changes }}
           echo "Deploying Layer 0"
   
   
