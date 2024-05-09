@@ -57,6 +57,7 @@ jobs:
       - name: Determine layer 0 changes
         id: determine_changes
         run: |
+          echo ${{ needs.configure.outputs.base_sha }}
           CHANGES=$(git diff --name-only ${{ needs.configure.outputs.base_sha }} HEAD -- ':!**/layer_1/**' ':!**/github/**')
           echo "Layer 0 File Changes:"
           echo "$CHANGES"
