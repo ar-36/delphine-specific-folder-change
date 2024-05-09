@@ -60,7 +60,7 @@ jobs:
           CHANGES=$(git diff --name-only ${{ needs.configure.outputs.base_sha }} HEAD -- ':!**/layer_1/**' ':!**/github/**' ':!.github/**')
           echo "Layer 0 File Changes:"
           echo "$CHANGES"
-          has_changes=$(if [ -n "$CHANGES" ]; then echo "true"; else echo "false"; fi)
+          has_changes=$(if [ -n "$CHANGES" ]; then echo "false"; else echo "true"; fi)
 
           echo "has_changes=${has_changes}" >> $GITHUB_ENV
   
@@ -73,6 +73,7 @@ jobs:
       - name: Deploying Layer 0
         run: |
           echo "Deploying Layer 0"
+  
 
   # layer_0_determine_changes:
   #   name: Layer 0 - Determine changes
