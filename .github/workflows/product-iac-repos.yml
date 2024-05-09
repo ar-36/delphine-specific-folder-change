@@ -5,6 +5,7 @@ on:
     branches:
       - master
     paths:
+      - .github/workflows/product-iac-repos.yml
       - iac/terraform/product-iac-repos/workloads/**
   workflow_dispatch:
 
@@ -56,7 +57,7 @@ jobs:
       - name: Determine layer 0 changes
         id: determine_changes
         run: |
-          CHANGES=$(git diff --name-only ${{ needs.configure.outputs.base_sha }} HEAD -- ':!**/layer_1/**' ':!**/github/**')
+          CHANGES=$(git diff --name-only ${{ needs.configure.outputs.base_sha }} HEAD -- ':!**/layer_1/**' ':!**/github/**' ':!.github/**')
           echo "Layer 0 File Changes:"
           echo "$CHANGES"
           has_changes=$(if [ -n "$CHANGES" ]; then echo "true"; else echo "false"; fi)
