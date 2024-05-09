@@ -10,7 +10,6 @@
 # The contents of this file are automatically generated, and will be overwritten!
 ####################################################################################################
 
-
 module "apigw_bootstrap" {
   # checkov:skip=CKV_TF_1:Ensure Terraform module sources use a commit hash:Not required as we are using an internal repository.
 
