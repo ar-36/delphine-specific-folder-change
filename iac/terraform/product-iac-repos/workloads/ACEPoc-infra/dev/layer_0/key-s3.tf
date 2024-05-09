@@ -10,7 +10,7 @@
 # The contents of this file are automatically generated, and will be overwritten!
 ####################################################################################################
 
-module "kms_cmk_s3" {
+module "kms_cmk__s3" {
   source = "github.com/CPC-SCP/terraform-aws-kms.git//modules/kms?ref=v1.0.0"
 
   description = "KMS key for 's3'"
