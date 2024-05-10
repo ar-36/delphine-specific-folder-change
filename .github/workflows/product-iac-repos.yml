@@ -181,10 +181,10 @@ jobs:
     needs:
       - determine_changes
     if: ${{ needs.determine_changes.outputs.LAYER_0_DEV_CHANGES != '[]' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        directory: ${{ fromJson(needs.determine_changes.outputs.LAYER_0_DEV_CHANGES) }}
+    # strategy:
+    #   fail-fast: false
+    #   matrix:
+    #     directory: ${{ fromJson(needs.determine_changes.outputs.LAYER_0_DEV_CHANGES) }}
     steps:
       - name: Layer 0 - Deploy - Dev
         run: |
@@ -204,10 +204,10 @@ jobs:
     needs:
       - determine_changes
     if: ${{ needs.determine_changes.outputs.LAYER_1_DEV_CHANGES != '[]' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        directory: ${{ fromJson(needs.determine_changes.outputs.LAYER_1_DEV_CHANGES) }}
+    # strategy:
+    #   fail-fast: false
+    #   matrix:
+    #     directory: ${{ fromJson(needs.determine_changes.outputs.LAYER_1_DEV_CHANGES) }}
     steps:
       - name: Layer 1 - Deploy - Dev
         run: |
@@ -227,10 +227,10 @@ jobs:
     needs:
       - determine_changes
     if: ${{ needs.determine_changes.outputs.LAYER_0_TEST_CHANGES != '[]' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        directory: ${{ fromJson(needs.determine_changes.outputs.LAYER_0_TEST_CHANGES) }}
+    # strategy:
+    #   fail-fast: false
+    #   matrix:
+    #     directory: ${{ fromJson(needs.determine_changes.outputs.LAYER_0_TEST_CHANGES) }}
     steps:
       - name: Layer 0 - Deploy - Test
         run: |
@@ -250,10 +250,10 @@ jobs:
     needs:
       - determine_changes
     if: ${{ needs.determine_changes.outputs.LAYER_1_TEST_CHANGES != '[]' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        directory: ${{ fromJson(needs.determine_changes.outputs.LAYER_1_TEST_CHANGES) }}
+    # strategy:
+    #   fail-fast: false
+    #   matrix:
+    #     directory: ${{ fromJson(needs.determine_changes.outputs.LAYER_1_TEST_CHANGES) }}
     steps:
       - name: Layer 1 - Deploy - Test
         run: |
@@ -273,10 +273,10 @@ jobs:
     needs:
       - determine_changes
     if: ${{ needs.determine_changes.outputs.LAYER_0_PROD_CHANGES != '[]' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        directory: ${{ fromJson(needs.determine_changes.outputs.LAYER_0_PROD_CHANGES) }}
+    # strategy:
+    #   fail-fast: false
+    #   matrix:
+    #     directory: ${{ fromJson(needs.determine_changes.outputs.LAYER_0_PROD_CHANGES) }}
     steps:
       - name: Layer 0 - Deploy - Prod
         run: |
@@ -296,10 +296,10 @@ jobs:
     needs:
       - determine_changes
     if: ${{ needs.determine_changes.outputs.LAYER_1_PROD_CHANGES != '[]' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        directory: ${{ fromJson(needs.determine_changes.outputs.LAYER_1_PROD_CHANGES) }}
+    # strategy:
+    #   fail-fast: false
+    #   matrix:
+    #     directory: ${{ fromJson(needs.determine_changes.outputs.LAYER_1_PROD_CHANGES) }}
     steps:
       - name: Layer 1 - Deploy - Prod
         run: |
