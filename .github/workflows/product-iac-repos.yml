@@ -61,7 +61,7 @@ jobs:
       - name: Finding Layer 0 DEV Changes
         id: layer_0_dev_changes
         run: |
-          LAYER_0_DEV_CHANGES=$(git diff --name-only ${{ needs.configure.outputs.base_sha }} HEAD -- ':!prod/**' ':!test/**' ':!**/layer_1/**' ':!**/github/**' ':!.github/**')
+          LAYER_0_DEV_CHANGES=$(git diff --name-only ${{ needs.configure.outputs.base_sha }} HEAD -- ':iac/terraform/product-iac-repos/**' ':!**/prod/**' ':!**/test/**' ':!**/layer_1/**' ':!**/github/**' ':!.github/**')
           echo "Layer 0 DEV File Changes:"
           echo "$LAYER_0_DEV_CHANGES"
 
@@ -76,7 +76,7 @@ jobs:
       - name: Finding Layer 1 DEV Changes
         id: layer_1_dev_changes
         run: |
-          LAYER_1_DEV_CHANGES=$(git diff --name-only ${{ needs.configure.outputs.base_sha }} HEAD -- ':!prod/**' ':!test/**' ':!**/layer_0/**' ':!**/github/**' ':!.github/**')
+          LAYER_1_DEV_CHANGES=$(git diff --name-only ${{ needs.configure.outputs.base_sha }} HEAD -- ':iac/terraform/product-iac-repos/**' ':!**/prod/**' ':!**/test/**' ':!**/layer_0/**' ':!**/github/**' ':!.github/**')
           echo "Layer 1 DEV File Changes:"
           echo "$LAYER_1_DEV_CHANGES"
           
@@ -91,7 +91,7 @@ jobs:
       - name: Finding Layer 0 TEST Changes
         id: layer_0_test_changes
         run: |
-          LAYER_0_TEST_CHANGES=$(git diff --name-only ${{ needs.configure.outputs.base_sha }} HEAD -- ':!prod/**' ':!dev/**' ':!**/layer_1/**' ':!**/github/**' ':!.github/**')
+          LAYER_0_TEST_CHANGES=$(git diff --name-only ${{ needs.configure.outputs.base_sha }} HEAD -- ':iac/terraform/product-iac-repos/**' ':!**/prod/**' ':!**/dev/**' ':!**/layer_1/**' ':!**/github/**' ':!.github/**')
           echo "Layer 0 TEST File Changes:"
           echo "$LAYER_0_TEST_CHANGES"
           
@@ -106,7 +106,7 @@ jobs:
       - name: Finding Layer 1 TEST Changes
         id: layer_1_test_changes
         run: |
-          LAYER_1_TEST_CHANGES=$(git diff --name-only ${{ needs.configure.outputs.base_sha }} HEAD -- ':!prod/**' ':!dev/**' ':!**/layer_0/**' ':!**/github/**' ':!.github/**')
+          LAYER_1_TEST_CHANGES=$(git diff --name-only ${{ needs.configure.outputs.base_sha }} HEAD -- ':iac/terraform/product-iac-repos/**' ':!**/prod/**' ':!**/dev/**' ':!**/layer_0/**' ':!**/github/**' ':!.github/**')
           echo "Layer 1 TEST File Changes:"
           echo "$LAYER_1_TEST_CHANGES"
           
@@ -121,7 +121,7 @@ jobs:
       - name: Finding Layer 0 PROD Changes
         id: layer_0_prod_changes
         run: |
-          LAYER_0_PROD_CHANGES=$(git diff --name-only ${{ needs.configure.outputs.base_sha }} HEAD -- ':!test/**' ':!dev/**' ':!**/layer_1/**' ':!**/github/**' ':!.github/**')
+          LAYER_0_PROD_CHANGES=$(git diff --name-only ${{ needs.configure.outputs.base_sha }} HEAD -- ':iac/terraform/product-iac-repos/**' ':!**/test/**' ':!**/dev/**' ':!**/layer_1/**' ':!**/github/**' ':!.github/**')
           echo "Layer 0 PROD File Changes:"
           echo "$LAYER_0_PROD_CHANGES"
           
@@ -136,7 +136,7 @@ jobs:
       - name: Finding Layer 1 PROD Changes
         id: layer_1_prod_changes
         run: |
-          LAYER_1_PROD_CHANGES=$(git diff --name-only ${{ needs.configure.outputs.base_sha }} HEAD -- ':!test/**' ':!dev/**' ':!**/layer_0/**' ':!**/github/**' ':!.github/**')
+          LAYER_1_PROD_CHANGES=$(git diff --name-only ${{ needs.configure.outputs.base_sha }} HEAD -- ':iac/terraform/product-iac-repos/**' ':!**/test/**' ':!**/dev/**' ':!**/layer_0/**' ':!**/github/**' ':!.github/**')
           echo "Layer 1 PROD File Changes:"
           echo "$LAYER_1_PROD_CHANGES"
           
