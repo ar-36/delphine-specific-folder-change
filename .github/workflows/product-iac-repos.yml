@@ -60,7 +60,14 @@ jobs:
           CHANGES=$(git diff --name-only ${{ needs.configure.outputs.base_sha }} HEAD -- ':!**/layer_1/**' ':!**/github/**' ':!.github/**')
           echo "Layer 0 File Changes:"
           echo "$CHANGES"
-          echo "$CHANGES" | tr '\n' ',' | jq -cRs 'split(",") | .[:-1]'
+
+          if [ -n "$CHANGES" ]; then
+            CHANGES=$(echo "$CHANGES" | tr '\n' ',' | jq -cRs 'split(",") | .[:-1]')
+          else
+            CHANGES=[]
+          fi
+          
+          echo $CHANGES | jq 'length == 0'
           
           has_changes=$(if [ -n "$CHANGES" ]; then echo "true"; else echo "false"; fi)
           echo "has_changes=${has_changes}" >> $GITHUB_ENV
