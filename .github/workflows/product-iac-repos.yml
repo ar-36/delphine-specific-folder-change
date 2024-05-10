@@ -208,8 +208,8 @@ jobs:
     # uses: CPC-SCP/iep-reusable-gha-workflows/.github/workflows/terraform-workflow.yml@main
     # secrets: inherit
     needs:
-      - determine_changes
-    if: ${{ needs.determine_changes.outputs.LAYER_1_DEV_CHANGES != '[]' }}
+      - layer_0_deploy_dev
+    if: ${{ needs.determine_changes.outputs.LAYER_1_DEV_CHANGES != '[]' && needs.layer_0_deploy_dev.result != 'failed' }}
     # strategy:
     #   fail-fast: false
     #   matrix:
