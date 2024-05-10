@@ -218,6 +218,7 @@ jobs:
       - name: Layer 1 - Deploy - Dev
         run: |
           echo "Layer 1 - Deploy - Dev"
+          echo ${{ needs.layer_0_deploy_dev.result }}
     # with:
     #   environment: product-iac-repos-dev
     #   tf_exec_aws_region: ${{ vars.TF_EXEC_AWS_REGION }}
