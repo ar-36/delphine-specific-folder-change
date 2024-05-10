@@ -1,0 +1,371 @@
+# name: product-iac-repos
+
+# on:
+#   push:
+#     branches:
+#       - master
+#     paths:
+#       - .github/workflows/product-iac-repos.yml
+#       - iac/terraform/product-iac-repos/workloads/**
+#   workflow_dispatch:
+
+# permissions:
+#   id-token: write
+#   contents: read
+
+# defaults:
+#   run:
+#     shell: bash
+
+# jobs:
+#   configure:
+#     name: Configure
+#     runs-on: ubuntu-latest
+#     outputs:
+#       base_sha: ${{ env.GIT_BASE_SHA }}
+#     steps:
+
+#       - name: Fetch repository history
+#         uses: actions/checkout@v3
+#         with:
+#           fetch-depth: 0
+#       - name: Determine commit SHA to compare against
+#         run: |
+#           if [ "${{ github.ref }}" == "refs/heads/master" ]; then
+#             GIT_BASE_SHA=$(git log --format=format:%H --merges --skip 1 -1)
+#           else
+#             GIT_BASE_SHA=$(git log --format=format:%H --merges -1)
+#           fi
+
+#           echo "GIT_BASE_SHA=${GIT_BASE_SHA}"
+#           echo "GIT_BASE_SHA=${GIT_BASE_SHA}" >> $GITHUB_ENV
+  
+
+#   layer_0_determine_changes:
+#     name: Layer 0 Determine Changes
+#     runs-on: ubuntu-latest
+#     needs: configure
+#     outputs:
+#       changes: ${{ env.CHANGES }}
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+#         with:
+#           ref: master
+#           fetch-depth: 0
+
+#       - name: Determine layer 0 changes
+#         id: determine_changes
+#         run: |
+#           CHANGES=$(git diff --name-only ${{ needs.configure.outputs.base_sha }} HEAD -- ':!**/layer_1/**' ':!**/github/**' ':!.github/**')
+#           echo "Layer 0 File Changes:"
+#           echo "$CHANGES"
+
+#           if [ -n "$CHANGES" ]; then
+#             CHANGES=$(echo "$CHANGES" | tr '\n' ',' | jq -cRs 'split(",") | .[:-1]')
+#           else
+#             CHANGES=[]
+#           fi
+
+#           echo "CHANGES=${CHANGES}" >> $GITHUB_ENV
+
+#   layer_0_deploy:
+#     name: Layer 0 - Deploy
+#     runs-on: ubuntu-latest
+#     needs: layer_0_determine_changes
+#     if: ${{ needs.layer_0_determine_changes.outputs.changes != '[]' }}
+#     steps:
+#       - name: Deploying Layer 0
+#         run: |
+#           echo "Deploying Layer 0"
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  # layer_1_determine_changes:
+  #   name: Layer 1 Determine Changes
+  #   runs-on: ubuntu-latest
+  #   needs: configure
+  #   outputs:
+  #     has_changes: ${{ env.has_changes }}
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
+  #       with:
+  #         ref: master
+  #         fetch-depth: 0
+
+  #     - name: Determine layer 1 changes
+  #       id: determine_changes
+  #       run: |
+  #         CHANGES=$(git diff --name-only ${{ needs.configure.outputs.base_sha }} HEAD -- ':!**/layer_0/**' ':!**/github/**' ':!.github/**')
+  #         echo "Layer 1 File Changes:"
+  #         echo "$CHANGES"
+  #         has_changes=$(if [ -n "$CHANGES" ]; then echo "true"; else echo "false"; fi)
+
+  #         echo "has_changes=${has_changes}" >> $GITHUB_ENV
+
+
+  # layer_1_deploy:
+  #   name: Layer 1 - Deploy
+  #   runs-on: ubuntu-latest
+  #   needs: layer_1_determine_changes
+  #   if: ${{ needs.layer_1_determine_changes.outputs.has_changes == 'true' }}
+  #   steps:
+  #     - name: Deploying Layer 1
+  #       run: |
+  #         echo "Deploying Layer 1"
+  
+
+  # layer_0_determine_changes:
+  #   name: Layer 0 - Determine changes
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     - configure
+  #   outputs:
+  #     matrix: ${{ env.MATRIX }}
+  #   steps:
+  #     - name: Check-out source
+  #       uses: actions/checkout@v3
+  #     - name: Get changed directories
+  #       id: changed_dirs
+  #       uses: tj-actions/changed-files@v41
+  #       with:
+  #         base_sha: ${{ needs.configure.outputs.base_sha }}
+  #         dir_names_max_depth: 5
+  #         dir_names: true
+  #         files_ignore: |
+  #           **/layer_1/**
+  #           **/github/**
+  #         json: true
+  #         path: iac/terraform/product-iac-repos/workloads/
+  #         quotepath: false
+  #         sha: ${{ github.sha }}
+  #     - run: echo "MATRIX=${{ steps.changed_dirs.outputs.all_changed_files }}" >> $GITHUB_ENV
+  
+  # configure:
+  #   name: Configure
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     matrix_layer_0_dev: ${{ env.MATRIX_LAYER_0_DEV }}
+  #     matrix_layer_1_dev: ${{ env.MATRIX_LAYER_1_DEV }}
+  #     matrix_layer_0_test: ${{ env.MATRIX_LAYER_0_TEST }}
+  #     matrix_layer_1_test: ${{ env.MATRIX_LAYER_1_TEST }}
+  #     matrix_layer_0_prod: ${{ env.MATRIX_LAYER_0_PROD }}
+  #     matrix_layer_1_prod: ${{ env.MATRIX_LAYER_1_PROD }}
+  #     matrix_github: ${{ env.MATRIX_GITHUB}}
+  #   steps:
+  #     - name: Fetch repository history
+  #       uses: actions/checkout@v3
+  #       with:
+  #         fetch-depth: 0
+  #     - name: Check all github subdirectories
+  #       id: github_subdirectories
+  #       run: |
+  #         SUBDIR_GITHUB_JSON=$(find ./iac/terraform/product-iac-repos/workloads/ -not -path '*/dev/*' -not -path '*/test/*' -not -path '*/prod/*' -name '*github' -maxdepth 2 -mindepth 2 -type d | sort | jq -cMRs 'split("\n") | .[0:-1]')
+  #         echo "MATRIX_GITHUB=${SUBDIR_GITHUB_JSON}"
+  #         echo "MATRIX_GITHUB=${SUBDIR_GITHUB_JSON}" >> $GITHUB_ENV
+  #     - name: Check all layer_0_dev subdirectories
+  #       id: layer_0_dev_subdirectories
+  #       run: |
+  #         SUBDIR_LAYER_0_DEV_JSON=$(find ./iac/terraform/product-iac-repos/workloads/ -not -path '*/github/*' -not -path '*/test/*' -not -path '*/prod/*' -name '*layer_0' -maxdepth 3 -mindepth 3 -type d | sort | jq -cMRs 'split("\n") | .[0:-1]')
+  #         echo "MATRIX_LAYER_0_DEV=${SUBDIR_LAYER_0_DEV_JSON}"
+  #         echo "MATRIX_LAYER_0_DEV=${SUBDIR_LAYER_0_DEV_JSON}" >> $GITHUB_ENV
+  #     - name: Check all layer_1_dev subdirectories
+  #       id: layer_1_dev_subdirectories
+  #       run: |
+  #         SUBDIR_LAYER_1_DEV_JSON=$(find ./iac/terraform/product-iac-repos/workloads/ -not -path '*/github/*' -not -path '*/test/*' -not -path '*/prod/*' -name '*layer_1' -maxdepth 3 -mindepth 3 -type d | sort | jq -cMRs 'split("\n") | .[0:-1]')
+  #         echo "MATRIX_LAYER_1_DEV=${SUBDIR_LAYER_1_DEV_JSON}"
+  #         echo "MATRIX_LAYER_1_DEV=${SUBDIR_LAYER_1_DEV_JSON}" >> $GITHUB_ENV
+  #     - name: Check all layer_0_test subdirectories
+  #       id: layer_0_test_subdirectories
+  #       run: |
+  #         SUBDIR_LAYER_0_TEST_JSON=$(find ./iac/terraform/product-iac-repos/workloads/ -not -path '*/github/*' -not -path '*/dev/*' -not -path '*/prod/*' -name '*layer_0' -maxdepth 3 -mindepth 3 -type d | sort | jq -cMRs 'split("\n") | .[0:-1]')
+  #         echo "MATRIX_LAYER_0_TEST=${SUBDIR_LAYER_0_TEST_JSON}"
+  #         echo "MATRIX_LAYER_0_TEST=${SUBDIR_LAYER_0_TEST_JSON}" >> $GITHUB_ENV
+  #     - name: Check all layer_1_test subdirectories
+  #       id: layer_1_test_subdirectories
+  #       run: |
+  #         SUBDIR_LAYER_1_TEST_JSON=$(find ./iac/terraform/product-iac-repos/workloads/ -not -path '*/github/*' -not -path '*/dev/*' -not -path '*/prod/*' -name '*layer_1' -maxdepth 3 -mindepth 3 -type d | sort | jq -cMRs 'split("\n") | .[0:-1]')
+  #         echo "MATRIX_LAYER_1_TEST=${SUBDIR_LAYER_1_TEST_JSON}"
+  #         echo "MATRIX_LAYER_1_TEST=${SUBDIR_LAYER_1_TEST_JSON}" >> $GITHUB_ENV
+  #     - name: Check all layer_0_prod subdirectories
+  #       id: layer_0_prod_subdirectories
+  #       run: |
+  #         SUBDIR_LAYER_0_PROD_JSON=$(find ./iac/terraform/product-iac-repos/workloads/ -not -path '*/github/*' -not -path '*/dev/*' -not -path '*/test/*' -name '*layer_0' -maxdepth 3 -mindepth 3 -type d | sort | jq -cMRs 'split("\n") | .[0:-1]')
+  #         echo "MATRIX_LAYER_0_PROD=${SUBDIR_LAYER_0_PROD_JSON}"
+  #         echo "MATRIX_LAYER_0_PROD=${SUBDIR_LAYER_0_PROD_JSON}" >> $GITHUB_ENV
+  #     - name: Check all layer_1_prod subdirectories
+  #       id: layer_1_prod_subdirectories
+  #       run: |
+  #         SUBDIR_LAYER_1_PROD_JSON=$(find ./iac/terraform/product-iac-repos/workloads/ -not -path '*/github/*' -not -path '*/dev/*' -not -path '*/test/*' -name '*layer_1' -maxdepth 3 -mindepth 3 -type d | sort | jq -cMRs 'split("\n") | .[0:-1]')
+  #         echo "MATRIX_LAYER_1_PROD=${SUBDIR_LAYER_1_PROD_JSON}"
+  #         echo "MATRIX_LAYER_1_PROD=${SUBDIR_LAYER_1_PROD_JSON}" >> $GITHUB_ENV
+
+  #         echo '==========================================='
+  #         echo $MATRIX_GITHUB
+  #         cat $GITHUB_ENV
+  
+  # check_changes:
+  #   name: check changes
+  #   needs:
+  #     - configure
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: check
+  #       run: |
+  #         echo $MATRIX_GITHUB
+  #         echo '---------------------------------------------'
+  #         cat $GITHUB_ENV
+
+  # deploy_github_repos:
+  #   name: Deploy - GitHub Repos
+  #   uses: CPC-SCP/iep-reusable-gha-workflows/.github/workflows/terraform-workflow.yml@main
+  #   secrets: inherit
+  #   needs:
+  #     - configure
+  #   if: needs.configure.outputs.MATRIX_GITHUB!= '[]'
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       directory: ${{ fromJson(needs.configure.outputs.matrix_github) }}
+  #   with:
+  #     environment: product-iac-repos-github
+  #     tf_exec_aws_region: ${{ vars.TF_EXEC_AWS_REGION }}
+  #     tf_exec_role_arn: ${{ vars.TF_EXEC_ROLE_ARN }}
+  #     tf_version: 1.5
+  #     tf_working_dir: ${{ matrix.directory }}
+
+  # layer_0_deploy_dev:
+  #   name: Layer 0 - Deploy - Dev
+  #   uses: CPC-SCP/iep-reusable-gha-workflows/.github/workflows/terraform-workflow.yml@main
+  #   secrets: inherit
+  #   needs:
+  #     - configure
+  #   if: needs.configure.outputs.matrix_layer_0_dev!= '[]'
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       directory: ${{ fromJson(needs.configure.outputs.matrix_layer_0_dev) }}
+  #   with:
+  #     environment: product-iac-repos-dev
+  #     tf_exec_aws_region: ${{ vars.TF_EXEC_AWS_REGION }}
+  #     tf_exec_role_arn: ${{ vars.TF_EXEC_ROLE_ARN }}
+  #     tf_version: 1.5
+  #     tf_working_dir: ${{ matrix.directory }}
+
+  # layer_1_deploy_dev:
+  #   name: Layer 1 - Deploy - Dev
+  #   uses: CPC-SCP/iep-reusable-gha-workflows/.github/workflows/terraform-workflow.yml@main
+  #   secrets: inherit
+  #   needs:
+  #     - configure
+  #     - layer_0_deploy_dev
+  #   if: needs.layer_0_deploy_dev.result != 'failed'
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       directory: ${{ fromJson(needs.configure.outputs.matrix_layer_1_dev) }}
+  #   with:
+  #     environment: product-iac-repos-dev
+  #     tf_exec_aws_region: ${{ vars.TF_EXEC_AWS_REGION }}
+  #     tf_exec_role_arn: ${{ vars.TF_EXEC_ROLE_ARN }}
+  #     tf_version: 1.5
+  #     tf_working_dir: ${{ matrix.directory }}
+
+  # layer_0_deploy_test:
+  #   name: Layer 0 - Deploy - Test
+  #   uses: CPC-SCP/iep-reusable-gha-workflows/.github/workflows/terraform-workflow.yml@main
+  #   secrets: inherit
+  #   needs:
+  #     - configure
+  #     - layer_0_deploy_dev
+  #     - layer_1_deploy_dev
+  #   if: needs.configure.outputs.matrix_layer_0_test != '[]'
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       directory: ${{ fromJson(needs.configure.outputs.matrix_layer_0_test) }}
+  #   with:
+  #     environment: product-iac-repos-test
+  #     tf_exec_aws_region: ${{ vars.TF_EXEC_AWS_REGION }}
+  #     tf_exec_role_arn: ${{ vars.TF_EXEC_ROLE_ARN }}
+  #     tf_version: 1.5
+  #     tf_working_dir: ${{ matrix.directory }}
+
+  # layer_1_deploy_test:
+  #   name: Layer 1 - Deploy - Test
+  #   uses: CPC-SCP/iep-reusable-gha-workflows/.github/workflows/terraform-workflow.yml@main
+  #   secrets: inherit
+  #   needs:
+  #     - configure
+  #     - layer_0_deploy_dev
+  #     - layer_1_deploy_dev
+  #     - layer_0_deploy_test
+  #   if: needs.layer_0_deploy_test.result != 'failed'
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       directory: ${{ fromJson(needs.configure.outputs.matrix_layer_1_test) }}
+  #   with:
+  #     environment: product-iac-repos-test
+  #     tf_exec_aws_region: ${{ vars.TF_EXEC_AWS_REGION }}
+  #     tf_exec_role_arn: ${{ vars.TF_EXEC_ROLE_ARN }}
+  #     tf_version: 1.5
+  #     tf_working_dir: ${{ matrix.directory }}
+
+  # layer_0_deploy_prod:
+  #   name: Layer 0 - Deploy - Prod
+  #   uses: CPC-SCP/iep-reusable-gha-workflows/.github/workflows/terraform-workflow.yml@main
+  #   secrets: inherit
+  #   needs:
+  #     - configure
+  #     - layer_0_deploy_dev
+  #     - layer_1_deploy_dev
+  #     - layer_0_deploy_test
+  #     - layer_1_deploy_test
+  #   if: needs.configure.outputs.matrix_layer_0_prod != '[]'
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       directory: ${{ fromJson(needs.configure.outputs.matrix_layer_0_prod) }}
+  #   with:
+  #     environment: product-iac-repos-prod
+  #     tf_exec_aws_region: ${{ vars.TF_EXEC_AWS_REGION }}
+  #     tf_exec_role_arn: ${{ vars.TF_EXEC_ROLE_ARN }}
+  #     tf_version: 1.5
+  #     tf_working_dir: ${{ matrix.directory }}
+
+  # layer_1_deploy_prod:
+  #   name: Layer 1 - Deploy - Prod
+  #   uses: CPC-SCP/iep-reusable-gha-workflows/.github/workflows/terraform-workflow.yml@main
+  #   secrets: inherit
+  #   needs:
+  #     - configure
+  #     - layer_0_deploy_dev
+  #     - layer_1_deploy_dev
+  #     - layer_0_deploy_test
+  #     - layer_1_deploy_test
+  #     - layer_0_deploy_prod
+  #   if: needs.layer_0_deploy_prod.result != 'failed'
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       directory: ${{ fromJson(needs.configure.outputs.matrix_layer_1_prod) }}
+  #   with:
+  #     environment: product-iac-repos-prod
+  #     tf_exec_aws_region: ${{ vars.TF_EXEC_AWS_REGION }}
+  #     tf_exec_role_arn: ${{ vars.TF_EXEC_ROLE_ARN }}
+  #     tf_version: 1.5
+  #     tf_working_dir: ${{ matrix.directory }}
