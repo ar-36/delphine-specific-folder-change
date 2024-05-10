@@ -63,7 +63,7 @@ jobs:
         run: |
           last_commit=$(git log --format="%H" -n 1)
           second_last_commit=$(git log --format="%H" -n 2 | tail -n 1)
-          LAYER_0_DEV_CHANGES=$(git diff --name-only $second_last_commit $last_commit HEAD -- ':iac/terraform/product-iac-repos/**' ':!**/prod/**' ':!**/test/**' ':!**/layer_1/**' ':!**/github/**' ':!.github/**')
+          LAYER_0_DEV_CHANGES=$(git diff --name-only $second_last_commit $last_commit -- ':iac/terraform/product-iac-repos/**' ':!**/prod/**' ':!**/test/**' ':!**/layer_1/**' ':!**/github/**' ':!.github/**')
           echo "Layer 0 DEV File Changes:"
           echo "$LAYER_0_DEV_CHANGES"
 
@@ -80,7 +80,7 @@ jobs:
         run: |
           last_commit=$(git log --format="%H" -n 1)
           second_last_commit=$(git log --format="%H" -n 2 | tail -n 1)
-          LAYER_1_DEV_CHANGES=$(git diff --name-only $second_last_commit $last_commit HEAD -- ':iac/terraform/product-iac-repos/**' ':!**/prod/**' ':!**/test/**' ':!**/layer_0/**' ':!**/github/**' ':!.github/**')
+          LAYER_1_DEV_CHANGES=$(git diff --name-only $second_last_commit $last_commit -- ':iac/terraform/product-iac-repos/**' ':!**/prod/**' ':!**/test/**' ':!**/layer_0/**' ':!**/github/**' ':!.github/**')
           echo "Layer 1 DEV File Changes:"
           echo "$LAYER_1_DEV_CHANGES"
           
@@ -97,7 +97,7 @@ jobs:
         run: |
           last_commit=$(git log --format="%H" -n 1)
           second_last_commit=$(git log --format="%H" -n 2 | tail -n 1)
-          LAYER_0_TEST_CHANGES=$(git diff --name-only $second_last_commit $last_commit HEAD -- ':iac/terraform/product-iac-repos/**' ':!**/prod/**' ':!**/dev/**' ':!**/layer_1/**' ':!**/github/**' ':!.github/**')
+          LAYER_0_TEST_CHANGES=$(git diff --name-only $second_last_commit $last_commit -- ':iac/terraform/product-iac-repos/**' ':!**/prod/**' ':!**/dev/**' ':!**/layer_1/**' ':!**/github/**' ':!.github/**')
           echo "Layer 0 TEST File Changes:"
           echo "$LAYER_0_TEST_CHANGES"
           
@@ -114,7 +114,7 @@ jobs:
         run: |
           last_commit=$(git log --format="%H" -n 1)
           second_last_commit=$(git log --format="%H" -n 2 | tail -n 1)
-          LAYER_1_TEST_CHANGES=$(git diff --name-only $second_last_commit $last_commit HEAD -- ':iac/terraform/product-iac-repos/**' ':!**/prod/**' ':!**/dev/**' ':!**/layer_0/**' ':!**/github/**' ':!.github/**')
+          LAYER_1_TEST_CHANGES=$(git diff --name-only $second_last_commit $last_commit -- ':iac/terraform/product-iac-repos/**' ':!**/prod/**' ':!**/dev/**' ':!**/layer_0/**' ':!**/github/**' ':!.github/**')
           echo "Layer 1 TEST File Changes:"
           echo "$LAYER_1_TEST_CHANGES"
           
@@ -131,7 +131,7 @@ jobs:
         run: |
           last_commit=$(git log --format="%H" -n 1)
           second_last_commit=$(git log --format="%H" -n 2 | tail -n 1)
-          LAYER_0_PROD_CHANGES=$(git diff --name-only $second_last_commit $last_commit HEAD -- ':iac/terraform/product-iac-repos/**' ':!**/test/**' ':!**/dev/**' ':!**/layer_1/**' ':!**/github/**' ':!.github/**')
+          LAYER_0_PROD_CHANGES=$(git diff --name-only $second_last_commit $last_commit -- ':iac/terraform/product-iac-repos/**' ':!**/test/**' ':!**/dev/**' ':!**/layer_1/**' ':!**/github/**' ':!.github/**')
           echo "Layer 0 PROD File Changes:"
           echo "$LAYER_0_PROD_CHANGES"
           
@@ -148,7 +148,7 @@ jobs:
         run: |
           last_commit=$(git log --format="%H" -n 1)
           second_last_commit=$(git log --format="%H" -n 2 | tail -n 1)
-          LAYER_1_PROD_CHANGES=$(git diff --name-only $second_last_commit $last_commit HEAD -- ':iac/terraform/product-iac-repos/**' ':!**/test/**' ':!**/dev/**' ':!**/layer_0/**' ':!**/github/**' ':!.github/**')
+          LAYER_1_PROD_CHANGES=$(git diff --name-only $second_last_commit $last_commit -- ':iac/terraform/product-iac-repos/**' ':!**/test/**' ':!**/dev/**' ':!**/layer_0/**' ':!**/github/**' ':!.github/**')
           echo "Layer 1 PROD File Changes:"
           echo "$LAYER_1_PROD_CHANGES"
           
