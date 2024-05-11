@@ -10,7 +10,6 @@
 # The contents of this file are automatically generated, and will be overwritten!
 ####################################################################################################
 
-
 data "aws_iam_policy_document" "gha" {
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
