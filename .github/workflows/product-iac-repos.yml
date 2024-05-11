@@ -209,7 +209,7 @@ jobs:
     # secrets: inherit
     needs:
       - layer_0_deploy_dev
-    if: ${{ needs.determine_changes.outputs.LAYER_1_DEV_CHANGES != '[]' && needs.layer_0_deploy_dev.result != 'failure' }}
+    # if: ${{ needs.determine_changes.outputs.LAYER_1_DEV_CHANGES != '[]' && needs.layer_0_deploy_dev.result != 'failure' }}
     # strategy:
     #   fail-fast: false
     #   matrix:
@@ -218,6 +218,7 @@ jobs:
       - name: Layer 1 - Deploy - Dev
         run: |
           echo "Layer 1 - Deploy - Dev"
+          echo ${{ needs.determine_changes.outputs.LAYER_1_DEV_CHANGES }}
           echo ${{ needs.layer_0_deploy_dev.result }}
     # with:
     #   environment: product-iac-repos-dev
