@@ -209,7 +209,7 @@ jobs:
     # secrets: inherit
     needs:
       - layer_0_deploy_dev
-    if: ${{ needs.determine_changes.outputs.LAYER_1_DEV_CHANGES != '[]' && needs.layer_0_deploy_dev.result != 'failed' }}
+    if: ${{ needs.determine_changes.outputs.LAYER_1_DEV_CHANGES != '[]' && needs.layer_0_deploy_dev.result != 'failure' }}
     # strategy:
     #   fail-fast: false
     #   matrix:
