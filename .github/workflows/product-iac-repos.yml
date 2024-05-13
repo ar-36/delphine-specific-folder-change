@@ -207,7 +207,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        directory: ${{ fromJson('["iac/terraform/product-iac-repos/workloads/ACEPoc-infra/dev/layer_0/key-s3.tf"]') }}
+        directory: ${{ fromJson('["iac/terraform/product-iac-repos/workloads/ACEPoc-infra/dev/layer_0"]') }}
     steps:
       - name: Layer 0 - Deploy - Dev
         run: |
