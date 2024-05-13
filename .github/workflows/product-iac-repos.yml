@@ -58,22 +58,22 @@ jobs:
           ref: ammar
           fetch-depth: 0
 
-      - name: Finding Github Changes
-        id: layer_0_dev_changes
-        run: |
-          last_commit=$(git log --format="%H" -n 1)
-          second_last_commit=$(git log --format="%H" -n 2 | tail -n 1)
-          LAYER_0_DEV_CHANGES=$(git diff --name-only $second_last_commit $last_commit -- ':iac/terraform/product-iac-repos/**' ':!**/prod/**' ':!**/test/**' ':!**/layer_1/**' ':!**/github/**' ':!.github/**')
-          echo "Github File Changes:"
-          echo "$LAYER_0_DEV_CHANGES"
+      # - name: Finding Github Changes
+      #   id: github_changes
+      #   run: |
+      #     last_commit=$(git log --format="%H" -n 1)
+      #     second_last_commit=$(git log --format="%H" -n 2 | tail -n 1)
+      #     LAYER_0_DEV_CHANGES=$(git diff --name-only $second_last_commit $last_commit -- ':iac/terraform/product-iac-repos/**' ':!**/prod/**' ':!**/dev/**' ':!**/test/**' ':!**/layer_1/**' ':!**/layer_0/**' ':!.github/**')
+      #     echo "Github File Changes:"
+      #     echo "$LAYER_0_DEV_CHANGES"
 
-          if [ -n "$LAYER_0_DEV_CHANGES" ]; then
-            LAYER_0_DEV_CHANGES=$(echo "$LAYER_0_DEV_CHANGES" | tr '\n' ',' | jq -cRs 'split(",") | .[:-1]')
-          else
-            LAYER_0_DEV_CHANGES=[]
-          fi
+      #     if [ -n "$LAYER_0_DEV_CHANGES" ]; then
+      #       LAYER_0_DEV_CHANGES=$(echo "$LAYER_0_DEV_CHANGES" | tr '\n' ',' | jq -cRs 'split(",") | .[:-1]')
+      #     else
+      #       LAYER_0_DEV_CHANGES=[]
+      #     fi
 
-          echo "LAYER_0_DEV_CHANGES=${LAYER_0_DEV_CHANGES}" >> $GITHUB_ENV
+      #     echo "LAYER_0_DEV_CHANGES=${LAYER_0_DEV_CHANGES}" >> $GITHUB_ENV
       
       - name: Finding Layer 0 DEV Changes
         id: layer_0_dev_changes
@@ -204,15 +204,15 @@ jobs:
     needs:
       - determine_changes
     if: ${{ needs.determine_changes.outputs.LAYER_0_DEV_CHANGES != '[]' }}
-    # strategy:
-    #   fail-fast: false
-    #   matrix:
-    #     directory: ${{ fromJson(needs.determine_changes.outputs.LAYER_0_DEV_CHANGES) }}
+    strategy:
+      fail-fast: false
+      matrix:
+        directory: ${{ fromJson(needs.determine_changes.outputs.LAYER_0_DEV_CHANGES) }}
     steps:
       - name: Layer 0 - Deploy - Dev
         run: |
           # exit 1
-          echo "Layer 0 - Deploy - Dev"
+          echo "Layer 0 - Deploy - Dev ${{ matrix.directory }}"
     # with:
     #   environment: product-iac-repos-dev
     #   tf_exec_aws_region: ${{ vars.TF_EXEC_AWS_REGION }}
