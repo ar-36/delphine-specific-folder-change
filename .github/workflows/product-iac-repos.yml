@@ -213,6 +213,7 @@ jobs:
         run: |
           # exit 1
           echo "Layer 0 - Deploy - Dev ${{ matrix.directory }}"
+          echo "${{ needs.determine_changes.outputs.LAYER_0_DEV_CHANGES }}"
     # with:
     #   environment: product-iac-repos-dev
     #   tf_exec_aws_region: ${{ vars.TF_EXEC_AWS_REGION }}
