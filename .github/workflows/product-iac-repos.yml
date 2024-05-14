@@ -92,7 +92,7 @@ jobs:
           echo "Layer 0 DEV File Changes:"
           echo "$LAYER_0_DEV_CHANGES"
 
-          if [ $LAYER_0_DEV_CHANGES -ne '[]' ]; then
+          if [ ${#LAYER_0_DEV_CHANGESy[@]} -gt 0 ]; then
             LAYER_0_DEV_CHANGES=$(echo $LAYER_0_DEV_CHANGES | tr '\n' ',' | jq -cRs 'split(",") | .[:-1]')
             # LAYER_0_DEV_CHANGES=$(echo $LAYER_0_DEV_CHANGES | jq 'map(. | rtrimstr("/" + split("/")[-1])) | map("./" + .)' | sed 's/\"/\"/g')
           fi
