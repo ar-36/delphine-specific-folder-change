@@ -45,6 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: configure
     outputs:
+      matrix_layer_0_dev: ${{ env.MATRIX_LAYER_0_DEV }}
       LAYER_0_DEV_CHANGES: ${{ env.LAYER_0_DEV_CHANGES }}
       LAYER_1_DEV_CHANGES: ${{ env.LAYER_1_DEV_CHANGES }}
       LAYER_0_TEST_CHANGES: ${{ env.LAYER_0_TEST_CHANGES }}
@@ -74,6 +75,13 @@ jobs:
       #     fi
 
       #     echo "LAYER_0_DEV_CHANGES=${LAYER_0_DEV_CHANGES}" >> $GITHUB_ENV
+      
+      - name: Check all layer_0_dev subdirectories
+        id: layer_0_dev_subdirectories
+        run: |
+          SUBDIR_LAYER_0_DEV_JSON=$(find ./iac/terraform/product-iac-repos/workloads/ -not -path '*/github/*' -not -path '*/test/*' -not -path '*/prod/*' -name '*layer_0' -maxdepth 3 -mindepth 3 -type d | sort | jq -cMRs 'split("\n") | .[0:-1]')
+          echo "MATRIX_LAYER_0_DEV=${SUBDIR_LAYER_0_DEV_JSON}"
+          echo "MATRIX_LAYER_0_DEV=${SUBDIR_LAYER_0_DEV_JSON}" >> $GITHUB_ENV
       
       - name: Finding Layer 0 DEV Changes
         id: layer_0_dev_changes
@@ -213,7 +221,8 @@ jobs:
         run: |
           # exit 1
           echo "Layer 0 - Deploy - Dev ${{ matrix.directory }}"
-          echo "${{ needs.determine_changes.outputs.LAYER_0_DEV_CHANGES }}"
+          echo ${{ needs.determine_changes.outputs.LAYER_0_DEV_CHANGES }}
+          echo ${{ needs.configure.outputs.matrix_layer_0_dev }}
     # with:
     #   environment: product-iac-repos-dev
     #   tf_exec_aws_region: ${{ vars.TF_EXEC_AWS_REGION }}
