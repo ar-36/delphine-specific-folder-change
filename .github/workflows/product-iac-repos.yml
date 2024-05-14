@@ -95,7 +95,7 @@ jobs:
           has_changes=$(echo "$LAYER_0_DEV_CHANGES" | jq 'length > 0')
 
           if [ $has_changes == 'true' ]; then
-            LAYER_0_DEV_CHANGES=$(echo "$LAYER_0_DEV_CHANGES" | jq -r 'map( . | rtrimstr("/" + split("/")[-1]) | "\"./" + . + "\"" ) | join(",")')
+            LAYER_0_DEV_CHANGES=$(echo "$LAYER_0_DEV_CHANGES" | jq -r 'map( . | rtrimstr("/" + split("/")[-1]) | "\"./" + . + "\"" ) | unique | join(",")')
             LAYER_0_DEV_CHANGES="[$LAYER_0_DEV_CHANGES]"
           fi
 
