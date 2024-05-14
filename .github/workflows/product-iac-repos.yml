@@ -101,7 +101,7 @@ jobs:
           fi
 
           echo "LAYER_0_DEV_CHANGES=${LAYER_0_DEV_CHANGES}"
-          echo "LAYER_0_DEV_CHANGES=${LAYER_0_DEV_CHANGES}" >> $GITHUB_ENV
+          echo $LAYER_0_DEV_CHANGES >> $GITHUB_ENV
       
       - name: Finding Layer 1 DEV Changes
         id: layer_1_dev_changes
