@@ -99,6 +99,7 @@ jobs:
             # LAYER_0_DEV_CHANGES=$(echo $LAYER_0_DEV_CHANGES | jq 'map(. | rtrimstr("/" + split("/")[-1])) | map("./" + .)' | sed 's/\"/\"/g')
           fi
 
+          echo "LAYER_0_DEV_CHANGES=${LAYER_0_DEV_CHANGES}"
           echo "LAYER_0_DEV_CHANGES=${LAYER_0_DEV_CHANGES}" >> $GITHUB_ENV
       
       - name: Finding Layer 1 DEV Changes
