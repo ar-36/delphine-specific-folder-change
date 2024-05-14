@@ -1,0 +1,322 @@
+# © 2024 Amazon Web Services, Inc. or its affiliates. All Rights Reserved.
+
+# This AWS Content is provided subject to the terms of the AWS Customer Agreement
+# available at http://aws.amazon.com/agreement or other written agreement between
+# Customer and either Amazon Web Services, Inc. or Amazon Web Services EMEA SARL or both.
+
+name: product-iac-repos
+
+on:
+  push:
+    branches:
+      - feature/IEP-581-delphine-test
+    paths:
+      - .github/workflows/product-iac-repos.yml
+      - iac/terraform/product-iac-repos/workloads/**
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  configure:
+    name: Configure
+    runs-on: ubuntu-latest
+    outputs:
+      base_sha: ${{ env.GIT_BASE_SHA }}
+    steps:
+
+      - name: Fetch repository history
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Determine commit SHA to compare against
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/feature/IEP-581-delphine-test" ]; then
+            GIT_BASE_SHA=$(git log --format=format:%H --merges --skip 1 -1)
+          else
+            GIT_BASE_SHA=$(git log --format=format:%H --merges -1)
+          fi
+
+          echo "GIT_BASE_SHA=${GIT_BASE_SHA}"
+          echo "GIT_BASE_SHA=${GIT_BASE_SHA}" >> $GITHUB_ENV
+  
+  determine_changes:
+    name: Determining Changes
+    runs-on: ubuntu-latest
+    needs: configure
+    outputs:
+      LAYER_0_DEV_CHANGES: ${{ env.LAYER_0_DEV_CHANGES }}
+      LAYER_1_DEV_CHANGES: ${{ env.LAYER_1_DEV_CHANGES }}
+      LAYER_0_TEST_CHANGES: ${{ env.LAYER_0_TEST_CHANGES }}
+      LAYER_1_TEST_CHANGES: ${{ env.LAYER_1_TEST_CHANGES }}
+      LAYER_0_PROD_CHANGES: ${{ env.LAYER_0_PROD_CHANGES }}
+      LAYER_1_PROD_CHANGES: ${{ env.LAYER_1_PROD_CHANGES }}
+      GITHUB_CHANGES: ${{ env.GITHUB_CHANGES }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: feature/IEP-581-delphine-test
+          fetch-depth: 0
+
+      - name: Finding Layer 0 DEV Changes
+        id: layer_0_dev_changes
+        run: |
+          last_commit=$(git log --format="%H" -n 1)
+          second_last_commit=$(git log --format="%H" -n 2 | tail -n 1)
+          LAYER_0_DEV_CHANGES=$(git diff --name-only $second_last_commit $last_commit -- ':iac/terraform/product-iac-repos/**' ':!**/prod/**' ':!**/test/**' ':!**/layer_1/**' ':!**/github/**' ':!.github/**' | jq -cMRs 'split("\n") | .[0:-1]')
+          echo "Layer 0 DEV File Changes:"
+          echo "$LAYER_0_DEV_CHANGES"
+
+          has_changes=$(echo "$LAYER_0_DEV_CHANGES" | jq 'length > 0')
+
+          if [ $has_changes == 'true' ]; then
+            LAYER_0_DEV_CHANGES=$(echo "$LAYER_0_DEV_CHANGES" | jq -r 'map( . | rtrimstr("/" + split("/")[-1]) | "\"./" + . + "\"" ) | unique | join(",")')
+            LAYER_0_DEV_CHANGES="[$LAYER_0_DEV_CHANGES]"
+          fi
+
+          echo "LAYER_0_DEV_CHANGES=${LAYER_0_DEV_CHANGES}" >> $GITHUB_ENV
+      
+      - name: Finding Layer 1 DEV Changes
+        id: layer_1_dev_changes
+        run: |
+          last_commit=$(git log --format="%H" -n 1)
+          second_last_commit=$(git log --format="%H" -n 2 | tail -n 1)
+          LAYER_1_DEV_CHANGES=$(git diff --name-only $second_last_commit $last_commit -- ':iac/terraform/product-iac-repos/**' ':!**/prod/**' ':!**/test/**' ':!**/layer_0/**' ':!**/github/**' ':!.github/**' | jq -cMRs 'split("\n") | .[0:-1]')
+          echo "Layer 1 DEV File Changes:"
+          echo "$LAYER_1_DEV_CHANGES"
+          
+          has_changes=$(echo "$LAYER_1_DEV_CHANGES" | jq 'length > 0')
+
+          if [ $has_changes == 'true' ]; then
+            LAYER_1_DEV_CHANGES=$(echo "$LAYER_1_DEV_CHANGES" | jq -r 'map( . | rtrimstr("/" + split("/")[-1]) | "\"./" + . + "\"" ) | unique | join(",")')
+            LAYER_1_DEV_CHANGES="[$LAYER_1_DEV_CHANGES]"
+          fi
+
+          echo "LAYER_1_DEV_CHANGES=${LAYER_1_DEV_CHANGES}" >> $GITHUB_ENV
+      
+      - name: Finding Layer 0 TEST Changes
+        id: layer_0_test_changes
+        run: |
+          last_commit=$(git log --format="%H" -n 1)
+          second_last_commit=$(git log --format="%H" -n 2 | tail -n 1)
+          LAYER_0_TEST_CHANGES=$(git diff --name-only $second_last_commit $last_commit -- ':iac/terraform/product-iac-repos/**' ':!**/prod/**' ':!**/dev/**' ':!**/layer_1/**' ':!**/github/**' ':!.github/**' | jq -cMRs 'split("\n") | .[0:-1]')
+          echo "Layer 0 TEST File Changes:"
+          echo "$LAYER_0_TEST_CHANGES"
+          
+          has_changes=$(echo "$LAYER_0_TEST_CHANGES" | jq 'length > 0')
+
+          if [ $has_changes == 'true' ]; then
+            LAYER_0_TEST_CHANGES=$(echo "$LAYER_0_TEST_CHANGES" | jq -r 'map( . | rtrimstr("/" + split("/")[-1]) | "\"./" + . + "\"" ) | unique | join(",")')
+            LAYER_0_TEST_CHANGES="[$LAYER_0_TEST_CHANGES]"
+          fi
+
+          echo "LAYER_0_TEST_CHANGES=${LAYER_0_TEST_CHANGES}" >> $GITHUB_ENV
+      
+      - name: Finding Layer 1 TEST Changes
+        id: layer_1_test_changes
+        run: |
+          last_commit=$(git log --format="%H" -n 1)
+          second_last_commit=$(git log --format="%H" -n 2 | tail -n 1)
+          LAYER_1_TEST_CHANGES=$(git diff --name-only $second_last_commit $last_commit -- ':iac/terraform/product-iac-repos/**' ':!**/prod/**' ':!**/dev/**' ':!**/layer_0/**' ':!**/github/**' ':!.github/**' | jq -cMRs 'split("\n") | .[0:-1]')
+          echo "Layer 1 TEST File Changes:"
+          echo "$LAYER_1_TEST_CHANGES"
+          
+          has_changes=$(echo "$LAYER_1_TEST_CHANGES" | jq 'length > 0')
+
+          if [ $has_changes == 'true' ]; then
+            LAYER_1_TEST_CHANGES=$(echo "$LAYER_1_TEST_CHANGES" | jq -r 'map( . | rtrimstr("/" + split("/")[-1]) | "\"./" + . + "\"" ) | unique | join(",")')
+            LAYER_1_TEST_CHANGES="[$LAYER_1_TEST_CHANGES]"
+          fi
+
+          echo "LAYER_1_TEST_CHANGES=${LAYER_1_TEST_CHANGES}" >> $GITHUB_ENV
+      
+      - name: Finding Layer 0 PROD Changes
+        id: layer_0_prod_changes
+        run: |
+          last_commit=$(git log --format="%H" -n 1)
+          second_last_commit=$(git log --format="%H" -n 2 | tail -n 1)
+          LAYER_0_PROD_CHANGES=$(git diff --name-only $second_last_commit $last_commit -- ':iac/terraform/product-iac-repos/**' ':!**/test/**' ':!**/dev/**' ':!**/layer_1/**' ':!**/github/**' ':!.github/**' | jq -cMRs 'split("\n") | .[0:-1]')
+          echo "Layer 0 PROD File Changes:"
+          echo "$LAYER_0_PROD_CHANGES"
+          
+          has_changes=$(echo "$LAYER_0_PROD_CHANGES" | jq 'length > 0')
+
+          if [ $has_changes == 'true' ]; then
+            LAYER_0_PROD_CHANGES=$(echo "$LAYER_0_PROD_CHANGES" | jq -r 'map( . | rtrimstr("/" + split("/")[-1]) | "\"./" + . + "\"" ) | unique | join(",")')
+            LAYER_0_PROD_CHANGES="[$LAYER_0_PROD_CHANGES]"
+          fi
+
+          echo "LAYER_0_PROD_CHANGES=${LAYER_0_PROD_CHANGES}" >> $GITHUB_ENV
+      
+      - name: Finding Layer 1 PROD Changes
+        id: layer_1_prod_changes
+        run: |
+          last_commit=$(git log --format="%H" -n 1)
+          second_last_commit=$(git log --format="%H" -n 2 | tail -n 1)
+          LAYER_1_PROD_CHANGES=$(git diff --name-only $second_last_commit $last_commit -- ':iac/terraform/product-iac-repos/**' ':!**/test/**' ':!**/dev/**' ':!**/layer_0/**' ':!**/github/**' ':!.github/**' | jq -cMRs 'split("\n") | .[0:-1]')
+          echo "Layer 1 PROD File Changes:"
+          echo "$LAYER_1_PROD_CHANGES"
+          
+          has_changes=$(echo "$LAYER_1_PROD_CHANGES" | jq 'length > 0')
+
+          if [ $has_changes == 'true' ]; then
+            LAYER_1_PROD_CHANGES=$(echo "$LAYER_1_PROD_CHANGES" | jq -r 'map( . | rtrimstr("/" + split("/")[-1]) | "\"./" + . + "\"" ) | unique | join(",")')
+            LAYER_1_PROD_CHANGES="[$LAYER_1_PROD_CHANGES]"
+          fi
+
+          echo "LAYER_1_PROD_CHANGES=${LAYER_1_PROD_CHANGES}" >> $GITHUB_ENV
+      
+      - name: Finding Github Changes
+        id: github_changes
+        run: |
+          last_commit=$(git log --format="%H" -n 1)
+          second_last_commit=$(git log --format="%H" -n 2 | tail -n 1)
+          GITHUB_CHANGES=$(git diff --name-only $second_last_commit $last_commit -- ':iac/terraform/product-iac-repos/**' ':!**/test/**' ':!**/dev/**' ':!**/prod/**' ':!**/layer_0/**' ':!**/layer_1/**' ':!.github/**' | jq -cMRs 'split("\n") | .[0:-1]')
+          echo "GITHUB File Changes:"
+          echo "$GITHUB_CHANGES"
+          
+          has_changes=$(echo "$GITHUB_CHANGES" | jq 'length > 0')
+
+          if [ $has_changes == 'true' ]; then
+            GITHUB_CHANGES=$(echo "$GITHUB_CHANGES" | jq -r 'map( . | rtrimstr("/" + split("/")[-1]) | "\"./" + . + "\"" ) | unique | join(",")')
+            GITHUB_CHANGES="[$GITHUB_CHANGES]"
+          fi
+
+          echo "GITHUB_CHANGES=${GITHUB_CHANGES}" >> $GITHUB_ENV
+
+
+  deploy_github_repos:
+    name: Deploy - GitHub Repos
+    uses: CPC-SCP/iep-reusable-gha-workflows/.github/workflows/terraform-workflow.yml@main
+    secrets: inherit
+    needs:
+      - determine_changes
+    if: ${{ needs.determine_changes.outputs.GITHUB_CHANGES != '[]' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        directory: ${{ fromJson(needs.determine_changes.outputs.GITHUB_CHANGES) }}
+    with:
+      environment: product-iac-repos-github
+      tf_exec_aws_region: ${{ vars.TF_EXEC_AWS_REGION }}
+      tf_exec_role_arn: ${{ vars.TF_EXEC_ROLE_ARN }}
+      tf_version: 1.5
+      tf_working_dir: ${{ matrix.directory }}
+
+  layer_0_deploy_dev:
+    name: Layer 0 - Deploy - Dev
+    uses: CPC-SCP/iep-reusable-gha-workflows/.github/workflows/terraform-workflow.yml@main
+    secrets: inherit
+    needs:
+      - determine_changes
+    if: ${{ needs.determine_changes.outputs.LAYER_0_DEV_CHANGES != '[]' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        directory: ${{ fromJson(needs.determine_changes.outputs.LAYER_0_DEV_CHANGES) }}
+    with:
+      environment: product-iac-repos-dev
+      tf_exec_aws_region: ${{ vars.TF_EXEC_AWS_REGION }}
+      tf_exec_role_arn: ${{ vars.TF_EXEC_ROLE_ARN }}
+      tf_version: 1.5
+      tf_working_dir: ${{ matrix.directory }}
+
+  layer_1_deploy_dev:
+    name: Layer 1 - Deploy - Dev
+    uses: CPC-SCP/iep-reusable-gha-workflows/.github/workflows/terraform-workflow.yml@main
+    secrets: inherit
+    needs:
+      - determine_changes
+      - layer_0_deploy_dev
+    if: ${{ always() && needs.determine_changes.outputs.LAYER_1_DEV_CHANGES != '[]' && needs.layer_0_deploy_dev.result != 'failure' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        directory: ${{ fromJson(needs.determine_changes.outputs.LAYER_1_DEV_CHANGES) }}
+    with:
+      environment: product-iac-repos-dev
+      tf_exec_aws_region: ${{ vars.TF_EXEC_AWS_REGION }}
+      tf_exec_role_arn: ${{ vars.TF_EXEC_ROLE_ARN }}
+      tf_version: 1.5
+      tf_working_dir: ${{ matrix.directory }}
+
+  layer_0_deploy_test:
+    name: Layer 0 - Deploy - Test
+    uses: CPC-SCP/iep-reusable-gha-workflows/.github/workflows/terraform-workflow.yml@main
+    secrets: inherit
+    needs:
+      - determine_changes
+    if: ${{ needs.determine_changes.outputs.LAYER_0_TEST_CHANGES != '[]' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        directory: ${{ fromJson(needs.determine_changes.outputs.LAYER_0_TEST_CHANGES) }}
+    with:
+      environment: product-iac-repos-test
+      tf_exec_aws_region: ${{ vars.TF_EXEC_AWS_REGION }}
+      tf_exec_role_arn: ${{ vars.TF_EXEC_ROLE_ARN }}
+      tf_version: 1.5
+      tf_working_dir: ${{ matrix.directory }}
+
+  layer_1_deploy_test:
+    name: Layer 1 - Deploy - Test
+    uses: CPC-SCP/iep-reusable-gha-workflows/.github/workflows/terraform-workflow.yml@main
+    secrets: inherit
+    needs:
+      - determine_changes
+      - layer_0_deploy_test
+    if: ${{ always() && needs.determine_changes.outputs.LAYER_1_TEST_CHANGES != '[]' && needs.layer_0_deploy_test.result != 'failure' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        directory: ${{ fromJson(needs.determine_changes.outputs.LAYER_1_TEST_CHANGES) }}
+    with:
+      environment: product-iac-repos-test
+      tf_exec_aws_region: ${{ vars.TF_EXEC_AWS_REGION }}
+      tf_exec_role_arn: ${{ vars.TF_EXEC_ROLE_ARN }}
+      tf_version: 1.5
+      tf_working_dir: ${{ matrix.directory }}
+
+  layer_0_deploy_prod:
+    name: Layer 0 - Deploy - Prod
+    uses: CPC-SCP/iep-reusable-gha-workflows/.github/workflows/terraform-workflow.yml@main
+    secrets: inherit
+    needs:
+      - determine_changes
+    if: ${{ needs.determine_changes.outputs.LAYER_0_PROD_CHANGES != '[]' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        directory: ${{ fromJson(needs.determine_changes.outputs.LAYER_0_PROD_CHANGES) }}
+    with:
+      environment: product-iac-repos-prod
+      tf_exec_aws_region: ${{ vars.TF_EXEC_AWS_REGION }}
+      tf_exec_role_arn: ${{ vars.TF_EXEC_ROLE_ARN }}
+      tf_version: 1.5
+      tf_working_dir: ${{ matrix.directory }}
+
+  layer_1_deploy_prod:
+    name: Layer 1 - Deploy - Prod
+    uses: CPC-SCP/iep-reusable-gha-workflows/.github/workflows/terraform-workflow.yml@main
+    secrets: inherit
+    needs:
+      - determine_changes
+      - layer_0_deploy_prod
+    if: ${{ always() && needs.determine_changes.outputs.LAYER_1_PROD_CHANGES != '[]' && needs.layer_0_deploy_prod.result != 'failure' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        directory: ${{ fromJson(needs.determine_changes.outputs.LAYER_1_PROD_CHANGES) }}
+    with:
+      environment: product-iac-repos-prod
+      tf_exec_aws_region: ${{ vars.TF_EXEC_AWS_REGION }}
+      tf_exec_role_arn: ${{ vars.TF_EXEC_ROLE_ARN }}
+      tf_version: 1.5
+      tf_working_dir: ${{ matrix.directory }}

@@ -4,6 +4,7 @@
 # available at http://aws.amazon.com/agreement or other written agreement between
 # Customer and either Amazon Web Services, Inc. or Amazon Web Services EMEA SARL or both.
 
+
 data "aws_iam_policy_document" "gha" {
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
