@@ -99,6 +99,7 @@ jobs:
           #   LAYER_0_DEV_CHANGES=[]
           # fi
 
+
           echo "LAYER_0_DEV_CHANGES=${LAYER_0_DEV_CHANGES}"
           echo "LAYER_0_DEV_CHANGES=${LAYER_0_DEV_CHANGES}" >> $GITHUB_ENV
       
