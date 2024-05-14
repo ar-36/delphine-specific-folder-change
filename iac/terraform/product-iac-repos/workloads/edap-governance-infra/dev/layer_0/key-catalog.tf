@@ -10,6 +10,7 @@
 # The contents of this file are automatically generated, and will be overwritten!
 ####################################################################################################
 
+
 module "kms_cmk_catalog" {
   source = "github.com/CPC-SCP/terraform-aws-kms.git//modules/kms?ref=v1.0.0"
 
