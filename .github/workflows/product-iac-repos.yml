@@ -93,7 +93,8 @@ jobs:
           echo "$LAYER_0_DEV_CHANGES"
 
           if [ -n "$LAYER_0_DEV_CHANGES" ]; then
-            LAYER_0_DEV_CHANGES=$(echo "$LAYER_0_DEV_CHANGES" | tr '\n' ',' | jq -cRs 'split(",") | .[:-1]' | jq 'map(. | rtrimstr("/" + split("/")[-1])) | map("./" + .)')
+            LAYER_0_DEV_CHANGES=$(echo "$LAYER_0_DEV_CHANGES" | tr '\n' ',' | jq -cRs 'split(",") | .[:-1]')
+            LAYER_0_DEV_CHANGES=$(echo $LAYER_0_DEV_CHANGES | jq 'map(. | rtrimstr("/" + split("/")[-1])) | map("./" + .)')
           else
             LAYER_0_DEV_CHANGES=[]
           fi
