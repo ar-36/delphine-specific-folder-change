@@ -95,7 +95,7 @@ jobs:
           if [ -n "$LAYER_0_DEV_CHANGES" ]; then
             LAYER_0_DEV_CHANGES=$(echo "$LAYER_0_DEV_CHANGES" | tr '\n' ',' | jq -cRs 'split(",") | .[:-1]')
             # LAYER_0_DEV_CHANGES=$(echo $LAYER_0_DEV_CHANGES | jq 'map(. | rtrimstr("/" + split("/")[-1])) | map("./" + .)' | sed 's/\"/\"/g')
-            LAYER_0_DEV_CHANGES=["./iac/terraform/product-iac-repos/workloads/ACEPoc-infra/dev/layer_0", "./dslsad/layer_1"]
+            LAYER_0_DEV_CHANGES=[ "./iac/terraform/product-iac-repos/workloads/ACEPoc-infra/dev/layer_0" ]
           else
             LAYER_0_DEV_CHANGES=[]
           fi
