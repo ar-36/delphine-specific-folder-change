@@ -17,7 +17,7 @@
 module "github_repo" {
   source = "../../../../../../tf-modules/github-repo"
 
-  allow_auto_merge         = true
+  allow_auto_merge         = false
   allow_merge_commit       = true
   allow_rebase_merge       = true
   allow_squash_merge       = true
