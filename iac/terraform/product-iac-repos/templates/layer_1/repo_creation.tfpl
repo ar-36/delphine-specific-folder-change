@@ -1,0 +1,89 @@
+# © 2024 Amazon Web Services, Inc. or its affiliates. All Rights Reserved.
+
+# This AWS Content is provided subject to the terms of the AWS Customer Agreement
+# available at http://aws.amazon.com/agreement or other written agreement between
+# Customer and either Amazon Web Services, Inc. or Amazon Web Services EMEA SARL or both.
+
+${autogen_warning}
+####################################################################################################
+# GitHub Repo Creation
+####################################################################################################
+
+module "github_repo" {
+  source = "../../../../../../tf-modules/github-repo"
+
+  allow_auto_merge         = ${repo_config.allow_auto_merge}
+  allow_merge_commit       = ${repo_config.allow_merge_commit}
+  allow_rebase_merge       = ${repo_config.allow_rebase_merge}
+  allow_squash_merge       = ${repo_config.allow_squash_merge}
+  archived                 = ${repo_config.archived}
+  auto_init                = ${repo_config.auto_init}
+  delete_branch_on_merge   = ${repo_config.delete_branch_on_merge}
+  description              = "${repo_config.description}"
+  gitignore_template       = "${repo_config.gitignore_template}"
+  has_discussions          = ${repo_config.has_discussions}
+  has_downloads            = ${repo_config.has_downloads}
+  has_issues               = ${repo_config.has_issues}
+  has_projects             = ${repo_config.has_projects}
+  has_wiki                 = ${repo_config.has_wiki}
+  homepage_url             = "${repo_config.homepage_url}"
+  is_template              = ${repo_config.is_template}
+  repo_name                = "${repo_name}"
+  repository_access_level  = "${repo_config.repository_access_level}"
+  template_repository_name = "${repo_config.template_repository_name}"
+  visibility               = "${repo_config.visibility}"
+  vulnerability_alerts     = ${repo_config.vulnerability_alerts}
+
+  %{~ if length(keys(repo_config.branch_protection_config)) != 0 ~}
+  branch_protection_config = {
+    %{ for k in keys(repo_config.branch_protection_config) }
+    ${k} = ${lookup(repo_config.branch_protection_config, k) ~}
+    %{ endfor }
+  }
+  %{~ endif ~}
+
+  %{~ if length(keys(repo_config.required_pull_request_reviews)) != 0 ~}
+  required_pull_request_reviews = {
+    %{ for k in keys(repo_config.required_pull_request_reviews) }
+    ${k} = ${lookup(repo_config.required_pull_request_reviews, k) ~}
+    %{~ endfor }
+  }
+  %{~ endif ~}
+}
+
+# By default, 'job_workflow_ref' is not passed by GitHub when it makes the assumeRole call to AWS.
+# For OIDC auth to work, we must explicitly set this value.
+# This is done so that we can limit use of IAM credentials to a specific, pre-approved "reusable
+# workflow"
+resource "github_actions_repository_oidc_subject_claim_customization_template" "main" {
+  include_claim_keys = ["repo", "job_workflow_ref"]
+  provider           = github
+  repository         = "${repo_name}"
+  use_default        = false
+}
+
+module "github_repo_teams" {
+  source = "../../../../../../tf-modules/github-team-creation"
+
+  developer_ad_group_name  = "${repo_config.developer_ad_group_name}"
+  maintainer_ad_group_name = "${repo_config.maintainer_ad_group_name}"
+  product_name             = "${repo_config.workload_name}"
+  repo_name                = "${repo_name}"
+}
+
+%{ for k in keys(repo_config.aws_account_ids) }
+module "github_actions_backend_${k}" {
+  source = "../../../../../../tf-modules/repo-iac-backend"
+
+  aws_account_id   = "${lookup(repo_config.aws_account_ids, k) }"
+  aws_account_name = "${k}"
+  aws_region       = "${repo_config.aws_region}"
+
+  %{~ if contains(repo_config.environments_requiring_deploy_approval, k) ~}
+  environment_protection = true
+  environment_reviewers  = [module.github_repo_teams.out.teams.maintainers.id]
+  %{~ endif ~}
+
+  repo_name = "${repo_name}"
+}
+%{ endfor }

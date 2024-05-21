@@ -1,0 +1,55 @@
+{
+    "Version": "2012-10-17",
+    "Id": "sqs",
+    "Statement": [
+        {
+            "Sid": "Allow full access only to the admin role utilized by the provisioner",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::${account_id}:role/${exec_role_name}"
+            },
+            "Action": [
+                "kms:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "Delegate read of key metadata by authorized account principals",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::${account_id}:root"
+            },
+            "Action": [
+                "kms:Describe*",
+                "kms:Get*",
+                "kms:List*"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "kms:CallerAccount": "${account_id}"
+                }
+            }
+        },
+        {
+            "Sid": "Delegate use of the key by authorized account principals",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::${account_id}:root"
+            },
+            "Action": [
+                "kms:Decrypt",
+                "kms:Encrypt",
+                "kms:GenerateDataKey*",
+                "kms:ReEncrypt*"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "kms:ViaService": "sqs.ca-central-1.amazonaws.com",
+                    "kms:CallerAccount": "${account_id}"
+                }
+            }
+        }
+    ]
+}

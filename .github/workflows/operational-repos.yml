@@ -1,0 +1,215 @@
+# © 2024 Amazon Web Services, Inc. or its affiliates. All Rights Reserved.
+
+# This AWS Content is provided subject to the terms of the AWS Customer Agreement
+# available at http://aws.amazon.com/agreement or other written agreement between
+# Customer and either Amazon Web Services, Inc. or Amazon Web Services EMEA SARL or both.
+
+name: operational-repos
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/operational-repos.yml
+      - iac/terraform/operational-repos/**
+      - tf-modules/github-repo/**
+      - tf-modules/repo-iac-backend/**
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+
+  configure:
+    name: Configure
+    runs-on: ubuntu-latest
+    outputs:
+      base_sha: ${{ env.GIT_BASE_SHA }}
+    steps:
+
+      - name: Fetch repository history
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Determine commit SHA to compare against
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/feature/IEP-581-delphine-test" ]; then
+            GIT_BASE_SHA=$(git log --format=format:%H --merges --skip 1 -1)
+          else
+            GIT_BASE_SHA=$(git log --format=format:%H --merges -1)
+          fi
+
+          echo "GIT_BASE_SHA=${GIT_BASE_SHA}"
+          echo "GIT_BASE_SHA=${GIT_BASE_SHA}" >> $GITHUB_ENV
+  
+  determine_changes:
+    name: Determining Changes
+    runs-on: ubuntu-latest
+    needs: configure
+    outputs:
+      LAYER_0_TESTLZA_CHANGES: ${{ env.LAYER_0_TESTLZA_CHANGES }}
+      LAYER_1_TESTLZA_CHANGES: ${{ env.LAYER_1_TESTLZA_CHANGES }}
+      LAYER_0_ENTERPRISELZA_CHANGES: ${{ env.LAYER_0_ENTERPRISELZA_CHANGES }}
+      LAYER_1_ENTERPRISELZA_CHANGES: ${{ env.LAYER_1_ENTERPRISELZA_CHANGES }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: feature/IEP-581-delphine-test
+          fetch-depth: 0
+
+      - name: Finding All Layer 0 Changes
+        id: layer_0_testlza_changes
+        run: |
+          last_commit=$(git log --format="%H" -n 1)
+          second_last_commit=$(git log --format="%H" -n 2 | tail -n 1)
+          LAYER_0_TESTLZA_CHANGES=$(git diff --name-only $second_last_commit $last_commit -- ':iac/terraform/operational-repos/repos/**' ':!**/edap-provisioner/**' ':!**/iep-dependabot-configuration-workflows/**' ':!**/enterprise/**' ':!**/layer_1/**' ':!**/github/**' ':!.github/**' | jq -cMRs 'split("\n") | .[0:-1]')
+          echo "All Layer 0 File Changes:"
+          echo "$LAYER_0_TESTLZA_CHANGES"
+
+          has_changes=$(echo "$LAYER_0_TESTLZA_CHANGES" | jq 'length > 0')
+
+          if [ $has_changes == 'true' ]; then
+            LAYER_0_TESTLZA_CHANGES=$(echo "$LAYER_0_TESTLZA_CHANGES" | jq -r 'map( . | rtrimstr("/" + split("/")[-1]) | "\"./" + . + "\"" ) | unique | join(",")')
+            LAYER_0_TESTLZA_CHANGES="[$LAYER_0_TESTLZA_CHANGES]"
+          fi
+
+          echo "LAYER_0_TESTLZA_CHANGES=${LAYER_0_TESTLZA_CHANGES}" >> $GITHUB_ENV
+      
+      - name: Finding All Layer 1 Changes
+        id: layer_1_testlza_changes
+        run: |
+          last_commit=$(git log --format="%H" -n 1)
+          second_last_commit=$(git log --format="%H" -n 2 | tail -n 1)
+          LAYER_1_TESTLZA_CHANGES=$(git diff --name-only $second_last_commit $last_commit -- ':iac/terraform/operational-repos/repos/**' ':!**/edap-provisioner/**' ':!**/iep-dependabot-configuration-workflows/**' ':!**/enterprise/**' ':!**/layer_0/**' ':!**/github/**' ':!.github/**' | jq -cMRs 'split("\n") | .[0:-1]')
+          echo "All Layer 1 File Changes:"
+          echo "$LAYER_1_TESTLZA_CHANGES"
+
+          has_changes=$(echo "$LAYER_1_TESTLZA_CHANGES" | jq 'length > 0')
+
+          if [ $has_changes == 'true' ]; then
+            LAYER_1_TESTLZA_CHANGES=$(echo "$LAYER_1_TESTLZA_CHANGES" | jq -r 'map( . | rtrimstr("/" + split("/")[-1]) | "\"./" + . + "\"" ) | unique | join(",")')
+            LAYER_1_TESTLZA_CHANGES="[$LAYER_1_TESTLZA_CHANGES]"
+          fi
+
+          echo "LAYER_1_TESTLZA_CHANGES=${LAYER_1_TESTLZA_CHANGES}" >> $GITHUB_ENV
+      
+      - name: Finding All Layer 0 Enterprise Changes
+        id: layer_0_enterpriselza_changes
+        run: |
+          last_commit=$(git log --format="%H" -n 1)
+          second_last_commit=$(git log --format="%H" -n 2 | tail -n 1)
+          LAYER_0_ENTERPRISELZA_CHANGES=$(git diff --name-only $second_last_commit $last_commit -- ':iac/terraform/operational-repos/repos/**' ':!**/edap-provisioner/**' ':!**/iep-dependabot-configuration-workflows/**' ':!**/test_org/**' ':!**/layer_1/**' ':!**/github/**' ':!.github/**' | jq -cMRs 'split("\n") | .[0:-1]')
+          echo "All Layer 0 Enterprise File Changes:"
+          echo "$LAYER_0_ENTERPRISELZA_CHANGES"
+
+          has_changes=$(echo "$LAYER_0_ENTERPRISELZA_CHANGES" | jq 'length > 0')
+
+          if [ $has_changes == 'true' ]; then
+            LAYER_0_ENTERPRISELZA_CHANGES=$(echo "$LAYER_0_ENTERPRISELZA_CHANGES" | jq -r 'map( . | rtrimstr("/" + split("/")[-1]) | "\"./" + . + "\"" ) | unique | join(",")')
+            LAYER_0_ENTERPRISELZA_CHANGES="[$LAYER_0_ENTERPRISELZA_CHANGES]"
+          fi
+
+          echo "LAYER_0_ENTERPRISELZA_CHANGES=${LAYER_0_ENTERPRISELZA_CHANGES}" >> $GITHUB_ENV
+      
+      - name: Finding All Layer 1 Enterprise Changes
+        id: layer_1_enterpriselza_changes
+        run: |
+          last_commit=$(git log --format="%H" -n 1)
+          second_last_commit=$(git log --format="%H" -n 2 | tail -n 1)
+          LAYER_1_ENTERPRISELZA_CHANGES=$(git diff --name-only $second_last_commit $last_commit -- ':iac/terraform/operational-repos/repos/**' ':!**/edap-provisioner/**' ':!**/iep-dependabot-configuration-workflows/**' ':!**/test_org/**' ':!**/layer_0/**' ':!**/github/**' ':!.github/**' | jq -cMRs 'split("\n") | .[0:-1]')
+          echo "All Layer 1 Enterprise File Changes:"
+          echo "$LAYER_1_ENTERPRISELZA_CHANGES"
+
+          has_changes=$(echo "$LAYER_1_ENTERPRISELZA_CHANGES" | jq 'length > 0')
+
+          if [ $has_changes == 'true' ]; then
+            LAYER_1_ENTERPRISELZA_CHANGES=$(echo "$LAYER_1_ENTERPRISELZA_CHANGES" | jq -r 'map( . | rtrimstr("/" + split("/")[-1]) | "\"./" + . + "\"" ) | unique | join(",")')
+            LAYER_1_ENTERPRISELZA_CHANGES="[$LAYER_1_ENTERPRISELZA_CHANGES]"
+          fi
+
+          echo "LAYER_1_ENTERPRISELZA_CHANGES=${LAYER_1_ENTERPRISELZA_CHANGES}" >> $GITHUB_ENV
+
+
+  # TEST LZA OPERATIONAL REPO WORKFLOW JOBS
+  layer_0_testlza_deploy:
+    name: TestLZA - L0 - Deploy
+    uses: CPC-SCP/iep-reusable-gha-workflows/.github/workflows/terraform-workflow.yml@main
+    secrets: inherit
+    needs:
+      - determine_changes
+    if: ${{ needs.determine_changes.outputs.LAYER_0_TESTLZA_CHANGES != '[]' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        directory: ${{ fromJson(needs.determine_changes.outputs.LAYER_0_TESTLZA_CHANGES) }}
+    with:
+      environment: operational-repos
+      tf_exec_aws_region: ${{ vars.TEST_ORG_TF_EXEC_AWS_REGION }}
+      tf_exec_role_arn: ${{ vars.TEST_ORG_TF_EXEC_ROLE_ARN }}
+      tf_version: 1.5
+      tf_working_dir: ${{ matrix.directory }}
+
+  layer_1_testlza_deploy:
+    name: TestLZA - L1 - Deploy
+    uses: CPC-SCP/iep-reusable-gha-workflows/.github/workflows/terraform-workflow.yml@main
+    secrets: inherit
+    needs:
+      - determine_changes
+      - layer_0_testlza_deploy
+    if: ${{ always() && needs.determine_changes.outputs.LAYER_1_TESTLZA_CHANGES != '[]' && needs.layer_0_testlza_deploy.result != 'failure' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        directory: ${{ fromJson(needs.determine_changes.outputs.LAYER_1_TESTLZA_CHANGES) }}
+    with:
+      environment: operational-repos-testlza
+      tf_exec_aws_region: ${{ vars.TEST_ORG_TF_EXEC_AWS_REGION }}
+      tf_exec_role_arn: ${{ vars.TEST_ORG_TF_EXEC_ROLE_ARN }}
+      tf_version: 1.5
+      tf_working_dir: ${{ matrix.directory }}
+
+  # ENTERPRISE LZA OPERATIONAL REPO WORKFLOW JOBS
+  layer_0_enterpriselza_deploy:
+    name: EnterpriseLZA - L0 - Deploy
+    uses: CPC-SCP/iep-reusable-gha-workflows/.github/workflows/terraform-workflow.yml@main
+    secrets: inherit
+    needs:
+      - determine_changes
+    if: ${{ needs.determine_changes.outputs.LAYER_0_ENTERPRISELZA_CHANGES != '[]' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        directory: ${{ fromJson(needs.determine_changes.outputs.LAYER_0_ENTERPRISELZA_CHANGES) }}
+    with:
+      environment: operational-repos-enterpriselza
+      tf_exec_aws_region: ${{ vars.TF_EXEC_AWS_REGION  }}
+      tf_exec_role_arn: ${{ vars.TF_EXEC_ROLE_ARN  }}
+      tf_version: 1.5
+      tf_working_dir: ${{ matrix.directory }}
+
+  layer_1_enterpriselza_deploy:
+    name: EnterpriseLZA - L1 - Deploy
+    uses: CPC-SCP/iep-reusable-gha-workflows/.github/workflows/terraform-workflow.yml@main
+    secrets: inherit
+    needs:
+      - determine_changes
+      - layer_0_enterpriselza_deploy
+    if: ${{ always() && needs.determine_changes.outputs.LAYER_1_ENTERPRISELZA_CHANGES != '[]' && needs.layer_0_enterpriselza_deploy.result != 'failure' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        directory: ${{ fromJson(needs.determine_changes.outputs.LAYER_1_ENTERPRISELZA_CHANGES) }}
+    with:
+      environment: operational-repos-enterpriselza
+      tf_exec_aws_region: ${{ vars.TF_EXEC_AWS_REGION }}
+      tf_exec_role_arn: ${{ vars.TF_EXEC_ROLE_ARN }}
+      tf_version: 1.5
+      tf_working_dir: ${{ matrix.directory }}

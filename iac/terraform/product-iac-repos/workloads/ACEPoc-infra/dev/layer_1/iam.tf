@@ -10,6 +10,7 @@
 # The contents of this file are automatically generated, and will be overwritten!
 ####################################################################################################
 
+
 data "aws_iam_policy_document" "gha" {
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
@@ -141,3 +142,4 @@ resource "aws_iam_role" "gha" {
     Name = "iep-ACEPoc-infra-dev-gha-exec"
   }
 }
+
